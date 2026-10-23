@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Intel Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f6; --surface:#fff; --ink:#101a33; --ink2:#1b2850; --muted:#5b6781; --line:#dbe1ed;
+  --accent:#3340f2; --accent-soft:#e8eaff; --signal:#ffc233; --ok:#0e9f6e; --bad:#d92d4a;
+  --font:'Instrument Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --display:'Bricolage Grotesque','Instrument Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--font);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.app{display:grid;grid-template-columns:288px 1fr;min-height:100vh}
+
+/* rail */
+.rail{background:var(--ink);color:#e9edf8;padding:26px 22px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:22px;overflow:auto}
+.brand{font:700 21px/1.1 var(--display);letter-spacing:-.01em}
+.brand small{display:block;font:400 12.5px var(--font);color:#9aa6c6;margin-top:6px;letter-spacing:0}
+.steps{list-style:none;margin:6px 0 0;padding:0;position:relative}
+.steps:before{content:"";position:absolute;left:13px;top:14px;bottom:14px;width:2px;background:#2a3868}
+.step{position:relative;display:flex;gap:14px;align-items:flex-start;padding:9px 0;background:none;border:0;width:100%;text-align:left;cursor:default;color:#8e9bbf}
+.step .dot{flex:none;width:28px;height:28px;border-radius:50%;background:var(--ink);border:2px solid #2a3868;display:grid;place-items:center;font:600 12px var(--font);z-index:1;transition:.2s}
+.step b{display:block;font-weight:600;font-size:14.5px;color:inherit}
+.step span.d{display:block;font-size:12.5px;color:#7885aa}
+.step.can{cursor:pointer;color:#dbe2f5}
+.step.can:hover b{text-decoration:underline}
+.step.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.step.cur{color:#fff}
+.step.cur .dot{background:var(--signal);border-color:var(--signal);color:var(--ink);box-shadow:0 0 0 6px rgba(255,194,51,.18)}
+.tally{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto}
+.tally div{background:#18244a;border-radius:12px;padding:10px 12px}
+.tally strong{display:block;font:700 22px/1 var(--display);color:#fff}
+.tally span{font-size:12px;color:#9aa6c6}
+.railbtns{display:flex;gap:8px;flex-wrap:wrap}
+.railbtns button{flex:1;background:#18244a;border:1px solid #2a3868;color:#e9edf8;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+.railbtns button:hover{background:#22306a}
+
+/* main */
+main{padding:38px clamp(18px,4vw,56px) 120px;max-width:1080px;width:100%}
+h1{font:700 clamp(28px,3.4vw,40px)/1.08 var(--display);letter-spacing:-.02em;margin:0 0 10px}
+h2{font:700 22px/1.2 var(--display);letter-spacing:-.01em;margin:0 0 6px}
+h3{font:600 16px/1.3 var(--font);margin:0 0 6px}
+.lede{color:var(--muted);max-width:62ch;margin:0 0 26px;font-size:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+.panel+.panel{margin-top:18px}
+label{display:block;font-weight:600;font-size:13.5px;margin-bottom:14px}
+label>input,label>select,label>textarea{display:block;width:100%;margin-top:6px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fbfcfe;font-weight:400;font-size:15px}
+label>textarea{min-height:92px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);background:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.hint{font-weight:400;color:var(--muted);font-size:12.5px;margin-top:5px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.btn{border:1px solid var(--line);background:#fff;padding:10px 16px;border-radius:11px;cursor:pointer;font-weight:600;font-size:14.5px;transition:.15s}
+.btn:hover{border-color:#b9c3dc}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#2531d8}
+.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:9px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.icon{background:none;border:0;font-size:22px;line-height:1;color:var(--muted);cursor:pointer;padding:4px 9px;border-radius:8px}
+.icon:hover{background:#f0f2f8;color:var(--bad)}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:#eef0f7;color:var(--muted);vertical-align:middle;margin-left:6px}
+.pill.direct{background:#e6f6ef;color:#0b7a55}
+.pill.indirect{background:#fff4d6;color:#8a6200}
+.pill.ok{background:#e6f6ef;color:#0b7a55}
+.pill.warn{background:#fff4d6;color:#8a6200}
+.err{background:#fdecef;border:1px solid #f3b8c3;color:#8f1d33;padding:12px 16px;border-radius:12px;margin-bottom:18px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.err button{background:none;border:0;cursor:pointer;font-size:20px;line-height:1;color:inherit}
+.notice{background:var(--accent-soft);border:1px solid #cdd2ff;padding:12px 16px;border-radius:12px;margin-bottom:18px;font-size:14px}
+.notice a{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;background:none;border:0;padding:0}
+
+/* competitors */
+.crow{display:grid;grid-template-columns:34px 1fr 40px;gap:12px;align-items:start;padding:14px 4px;border-bottom:1px solid var(--line)}
+.crow:last-child{border-bottom:0}
+.crow.off{opacity:.5}
+.crow input[type=checkbox]{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.cname{font-weight:600;font-size:16px}
+.clink{color:var(--accent);font-size:13px;text-decoration:none}
+.clink:hover{text-decoration:underline}
+.crow p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.addrow{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-top:18px;padding-top:18px;border-top:1px dashed var(--line)}
+.addrow label{margin:0}
+
+/* accordions */
+.acc{background:var(--surface);border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden}
+.acc>header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;cursor:pointer}
+.acc>header:hover{background:#fafbfe}
+.acc .body{padding:4px 20px 20px;border-top:1px solid var(--line)}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.links a,.chip{display:inline-block;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:#fff;font-size:12.5px;font-weight:500;color:var(--ink);text-decoration:none}
+.links a:hover,a.chip:hover{border-color:var(--accent);color:var(--accent)}
+.drop{border:2px dashed #c5cde0;border-radius:12px;padding:16px;text-align:center;color:var(--muted);font-size:14px;cursor:pointer;background:#fbfcfe}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(16,26,51,.8);color:#fff;cursor:pointer;line-height:1}
+.res{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.res section{background:#f6f8fc;border-radius:12px;padding:14px 16px}
+.res section.wide{grid-column:1/-1}
+.res h4{margin:0 0 8px;font:600 14px var(--font)}
+.res ul{margin:0;padding-left:18px}
+.res li{margin-bottom:6px;font-size:14px}
+.res li small{color:var(--muted);display:block}
+.opts{display:flex;gap:22px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.opts label{display:flex;gap:9px;align-items:center;margin:0;font-weight:500}
+.opts input{width:18px;height:18px;accent-color:var(--accent)}
+
+/* ideas */
+.overview{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:6px 0 22px}
+.overview div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.overview ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.idea{display:grid;grid-template-columns:34px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--c,#8a95b3);border-radius:14px;padding:16px 18px;margin-bottom:12px;cursor:pointer;transition:.15s}
+.idea:hover{box-shadow:0 6px 22px rgba(16,26,51,.08)}
+.idea.sel{background:var(--accent-soft);border-color:#cdd2ff;border-left-color:var(--c,var(--accent))}
+.idea input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.idea .tag{font-size:12px;font-weight:600;color:var(--c,var(--muted))}
+.idea p{margin:4px 0;font-size:14.5px}
+.idea .meta{color:var(--muted);font-size:13.5px}
+.cat-USP{--c:#3340f2}.cat-Format{--c:#c2410c}.cat-Hook{--c:#7c3aed}.cat-Offer{--c:#0e9f6e}.cat-Proof{--c:#0369a1}.cat-Emotion{--c:#be185d}
+.sticky{position:fixed;left:288px;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:14px clamp(18px,4vw,56px);display:flex;gap:12px;align-items:center;justify-content:space-between;z-index:5}
+
+/* concepts */
+.concept{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+.concept .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.hook{font:600 17px/1.35 var(--display);margin:10px 0;padding:12px 16px;background:#fff8e1;border-left:4px solid var(--signal);border-radius:0 10px 10px 0}
+.script{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+.script th{text-align:left;font-weight:600;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line);font-size:12.5px}
+.script td{padding:8px;border-bottom:1px solid #eef0f6;vertical-align:top}
+.script td:first-child{white-space:nowrap;font-weight:600}
+.copyblock{background:#f6f8fc;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:10px}
+.copyblock b{font-weight:600}
+.scroll{overflow-x:auto}
+
+/* overlays */
+#overlay{position:fixed;inset:0;background:rgba(16,26,51,.55);display:none;place-items:center;z-index:30;padding:18px}
+#overlay.on{display:grid}
+.modal{background:#fff;border-radius:18px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:26px}
+.modal h2{margin-bottom:14px}
+.working{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:14px;z-index:20;min-width:280px;max-width:92vw;box-shadow:0 12px 36px rgba(16,26,51,.35);display:none}
+.working.on{display:block}
+.working .bar{height:5px;background:#2a3868;border-radius:9px;margin-top:9px;overflow:hidden}
+.working .bar i{display:block;height:100%;background:var(--signal);transition:width .3s}
+.working small{color:#9aa6c6;display:block}
+#toast{position:fixed;top:18px;right:18px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;z-index:40;opacity:0;transform:translateY(-8px);transition:.25s;pointer-events:none}
+#toast.on{opacity:1;transform:none}
+.proj{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.empty{color:var(--muted);padding:20px 0;text-align:center}
+.exports{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 16px;gap:12px}
+  .brand small,.tally,.step span.d,.steps:before{display:none}
+  .steps{display:flex;gap:4px;margin:0;flex:1 1 100%;order:3;overflow:auto}
+  .step{padding:4px 8px;width:auto;align-items:center;gap:8px}
+  .step b{font-size:13px;white-space:nowrap}
+  .railbtns{margin-left:auto;flex:none}
+  .grid2,.res,.overview,.addrow{grid-template-columns:1fr}
+  .sticky{left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media print{
+  .rail,.sticky,.exports,.working,.btn,.icon,.actions,#toast{display:none!important}
+  .app{display:block}body{background:#fff}main{padding:0;max-width:none}
+  .concept,.idea,.panel{break-inside:avoid;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" id="rail"></aside>
+  <main id="main"></main>
+</div>
+<div id="overlay"></div>
+<div class="working" id="working" role="status" aria-live="polite"></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => { try { const x = new URL(String(u).trim()); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch { return ''; } };
+const host = u => { try { return new URL(/^https?:/.test(u) ? u : 'https://' + u).hostname.replace(/^www\./, ''); } catch { return String(u || ''); } };
+const uid = () => Math.random().toString(36).slice(2, 10);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const arr = x => Array.isArray(x) ? x : [];
+const tx = (x, ...keys) => { if (x == null) return ''; if (typeof x === 'string') return x; for (const k of keys) if (x[k]) return String(x[k]); return ''; };
+const DEFAULT_MODEL = 'gemini-3.1-pro-preview';
+
+/* ---------- state ---------- */
+let settings = {};
+try { settings = JSON.parse(localStorage.getItem('mis_settings') || '{}'); } catch {}
+const newState = () => ({
+  id: uid(), step: 1, maxStep: 1,
+  biz: { name: '', url: '', desc: '', audience: '', country: 'IN' },
+  profile: null, competitors: [], ads: {}, analysis: {}, overview: null, ideas: [], selected: [],
+  concepts: {}, opts: { pain: true, scan: true, lang: 'English', count: 6 }
+});
+let S = newState();
+let T = { newName: '', newWeb: '' };      // temp inputs
+let IMAGES = {};                          // competitor id -> [{name,mime,data,url}] (kept in memory only)
+let UI = { busy: null, error: '', open: {}, drawer: null };
+
+/* ---------- persistence ---------- */
+let saveTimer;
+function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
+function save() {
+  if (!S.biz.name && S.step === 1) return;
+  try {
+    const list = JSON.parse(localStorage.getItem('mis_projects') || '[]');
+    const snap = JSON.parse(JSON.stringify(S)); snap.updated = Date.now();
+    const i = list.findIndex(p => p.id === S.id);
+    if (i >= 0) list[i] = snap; else list.unshift(snap);
+    localStorage.setItem('mis_projects', JSON.stringify(list.slice(0, 30)));
+    localStorage.setItem('mis_last', S.id);
+  } catch {}
+}
+function loadLast() {
+  try {
+    const list = JSON.parse(localStorage.getItem('mis_projects') || '[]');
+    const id = localStorage.getItem('mis_last');
+    const p = list.find(x => x.id === id);
+    if (p) S = Object.assign(newState(), p);
+  } catch {}
+}
+
+/* ---------- Gemini client ---------- */
+const SYS = `You are a senior performance-marketing strategist and market researcher who works with Indian edtech and online-learning brands (JEE, NEET, UPSC, upskilling, online degrees, IIT/IIM-branded programs). Be specific, practical and evidence-based. Never invent facts, prices, ads, statistics or URLs. If something is unknown or unverified, say so plainly. When asked for JSON, return only valid JSON with no commentary and no markdown fences.`;
+
+function friendly(status, msg, raw) {
+  if (status === 404 && !settings.ownKey && /not found|could not be found|NOT_FOUND/i.test(raw || '') === false) return 'No server found at /api/gemini. Deploy to Vercel, or add your own Gemini key in Settings to run directly.';
+  if (status === 504 || /FUNCTION_INVOCATION_TIMEOUT|timed out/i.test(raw || '')) return 'The request took longer than the 60s server limit. Open Settings and switch to a Flash model in Settings, or retry.';
+  if (status === 401) return 'Access code not accepted. Open Settings and re-enter it.';
+  if (status === 429) return 'Gemini rate limit reached. Wait a minute and retry. Switching to a Flash model in Settings also helps.';
+  return msg;
+}
+
+async function gemini({ system = SYS, parts, tools = [], temperature = 0.6 }) {
+  const body = {
+    contents: [{ role: 'user', parts }],
+    systemInstruction: { parts: [{ text: system }] },
+    generationConfig: { temperature, maxOutputTokens: 24000 }
+  };
+  if (tools.length) body.tools = tools;
+  const model = (settings.model || '').trim();
+  let lastErr;
+  for (let a = 0; a < 4; a++) {
+    let r;
+    try {
+      if (settings.ownKey) {
+        r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model || DEFAULT_MODEL}:generateContent`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.ownKey.trim() }, body: JSON.stringify(body)
+        });
+      } else {
+        r = await fetch('/api/gemini', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-access-code': (settings.code || '').trim() },
+          body: JSON.stringify({ model, body })
+        });
+      }
+    } catch (e) {
+      lastErr = new Error('Network error. Check your connection and retry.');
+      if (a < 3) { await sleep(1500 * (a + 1)); continue; }
+      throw lastErr;
+    }
+    const raw = await r.text(); let j = null; try { j = JSON.parse(raw); } catch {}
+    if (r.ok && j) return parseResp(j);
+    const msg = j?.error?.message || raw.slice(0, 180) || ('HTTP ' + r.status);
+    lastErr = new Error(friendly(r.status, msg, raw));
+    if ([429, 500, 502, 503].includes(r.status) && a < 3) { await sleep(2500 * (a + 1)); continue; }
+    throw lastErr;
+  }
+  throw lastErr;
+}
+function parseResp(j) {
+  const c = j.candidates?.[0];
+  if (!c) throw new Error(j.promptFeedback?.blockReason ? 'Gemini blocked this request (' + j.promptFeedback.blockReason + ').' : 'Gemini returned an empty answer. Retry.');
+  const text = (c.content?.parts || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
+  const sources = (c.groundingMetadata?.groundingChunks || []).map(x => x.web).filter(Boolean).map(w => ({ url: w.uri, title: w.title || '' }));
+  if (!text.trim()) throw new Error('Gemini returned an empty answer. Retry.');
+  return { text, sources };
+}
+function extractJSON(t) {
+  t = t.replace(/```json|```/gi, '').trim();
+  const a = t.indexOf('{'), b = t.indexOf('[');
+  const si = a < 0 ? b : b < 0 ? a : Math.min(a, b);
+  if (si < 0) throw new Error('no json');
+  const close = t[si] === '{' ? '}' : ']';
+  let s = t.slice(si, t.lastIndexOf(close) + 1);
+  try { return JSON.parse(s); } catch { return JSON.parse(s.replace(/,\s*([}\]])/g, '$1')); }
+}
+async function askJSON(opts) {
+  const r = await gemini(opts);
+  try { return { data: extractJSON(r.text), sources: r.sources }; }
+  catch {
+    const r2 = await gemini({ parts: [{ text: 'Convert the following into valid JSON only (no commentary, no markdown), keeping all content:\n\n' + r.text }], temperature: 0 });
+    return { data: extractJSON(r2.text), sources: r.sources };
+  }
+}
+async function pool(items, n, fn) {
+  const q = [...items];
+  await Promise.all(Array.from({ length: Math.min(n, q.length) }, async () => { while (q.length) await fn(q.shift()); }));
+}
+
+/* ---------- UI helpers ---------- */
+function busy(title, detail = '', done = 0, total = 0) { UI.busy = { title, detail, done, total }; renderWorking(); }
+function idle() { UI.busy = null; renderWorking(); }
+function fail(e) { UI.error = e?.message || String(e); idle(); render(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 1800); }
+function go(n) { S.step = n; S.maxStep = Math.max(S.maxStep, n); UI.error = ''; render(); window.scrollTo({ top: 0 }); saveSoon(); }
+const metaLink = (c) => `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=${encodeURIComponent(S.biz.country || 'IN')}&q=${encodeURIComponent(c.name)}&search_type=keyword_unordered&media_type=all`;
+const gLink = (c) => `https://adstransparency.google.com/?region=${encodeURIComponent(S.biz.country || 'IN')}&domain=${encodeURIComponent(host(c.website))}`;
+const ytLink = (c) => `https://www.youtube.com/results?search_query=${encodeURIComponent(c.name + ' ad')}`;
+const selComps = () => S.competitors.filter(c => c.selected);
+
+/* ---------- rendering: rail ---------- */
+function renderRail() {
+  const steps = [['Your business', 'Read your site and offers'], ['Competitors', 'Find, add, remove'], ['Ad insights and ideas', 'USPs, creatives, 10+ ideas'], ['Creatives', '5+ concepts per idea']];
+  const analysed = selComps().filter(c => S.analysis[c.id]).length;
+  const concepts = Object.values(S.concepts).reduce((n, l) => n + arr(l).length, 0);
+  $('#rail').innerHTML = `
+    <div class="brand">Market Intel Studio<small>Competitor ads to creative ideas</small></div>
+    <ol class="steps" style="list-style:none">
+      ${steps.map((s, i) => {
+        const n = i + 1, cls = n === S.step ? 'cur' : n < S.step || n <= S.maxStep ? 'done can' : '';
+        const can = n <= S.maxStep && n !== S.step;
+        return `<li><button class="step ${cls}" ${can ? `data-act="goto" data-n="${n}"` : 'tabindex="-1"'} ${n === S.step ? 'aria-current="step"' : ''}>
+          <span class="dot">${n < S.step || (n <= S.maxStep && n !== S.step) ? '✓' : n}</span><span><b>${s[0]}</b><span class="d">${s[1]}</span></span></button></li>`;
+      }).join('')}
+    </ol>
+    <div class="tally">
+      <div><strong>${selComps().length}</strong><span>competitors</span></div>
+      <div><strong>${analysed}</strong><span>analysed</span></div>
+      <div><strong>${S.ideas.length}</strong><span>ideas</span></div>
+      <div><strong>${concepts}</strong><span>concepts</span></div>
+    </div>
+    <div class="railbtns">
+      <button data-act="newProj">New</button><button data-act="openHistory">History</button><button data-act="openSettings">Settings</button>
+    </div>`;
+}
+
+/* ---------- rendering: main ---------- */
+function renderMain() {
+  const needKey = !settings.ownKey && !settings.code;
+  let h = '';
+  if (UI.error) h += `<div class="err" role="alert"><span>${esc(UI.error)}</span><button data-act="dismissErr" aria-label="Dismiss">×</button></div>`;
+  if (needKey) h += `<div class="notice">Add your access code (or your own Gemini key) to start. <button data-act="openSettings" class="notice a" style="color:var(--accent);font-weight:600;text-decoration:underline;background:none;border:0;cursor:pointer;padding:0">Open settings</button></div>`;
+  h += [viewBusiness, viewCompetitors, viewInsights, viewCreatives][S.step - 1]();
+  $('#main').innerHTML = h;
+}
+const opt = (v, l, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${l}</option>`;
+
+function viewBusiness() {
+  const b = S.biz, p = S.profile;
+  return `
+  <h1>Tell us about your business</h1>
+  <p class="lede">Add your website and a few lines about what you sell. We read the site, then build a profile of your offers, audience and positioning that every later step uses.</p>
+  <div class="panel">
+    <div class="grid2">
+      <label>Business or brand name<input data-bind="biz.name" value="${esc(b.name)}" placeholder="e.g. PW Medharthi"></label>
+      <label>Website<input data-bind="biz.url" value="${esc(b.url)}" placeholder="https://yourbrand.com"></label>
+    </div>
+    <label>What do you offer? <textarea data-bind="biz.desc" placeholder="Programs, products, pricing range, what makes you different">${esc(b.desc)}</textarea></label>
+    <div class="grid2">
+      <label>Who is it for? (optional)<input data-bind="biz.audience" value="${esc(b.audience)}" placeholder="e.g. working professionals, class 12 students"></label>
+      <label>Country for ad search<select data-bind="biz.country">${opt('IN', 'India', b.country)}${opt('US', 'United States', b.country)}${opt('GB', 'United Kingdom', b.country)}${opt('AE', 'UAE', b.country)}${opt('SG', 'Singapore', b.country)}${opt('AU', 'Australia', b.country)}${opt('CA', 'Canada', b.country)}${opt('ALL', 'All countries', b.country)}</select></label>
+    </div>
+    <div class="actions"><button class="btn primary" data-act="analyzeBiz" ${UI.busy ? 'disabled' : ''}>${p ? 'Read it again' : 'Read my business'}</button>
+    <span class="hint">Takes about 20 to 40 seconds.</span></div>
+  </div>
+  ${p ? `
+  <div class="panel">
+    <h2>Here is what we understood</h2>
+    <p class="hint" style="margin:0 0 14px">Edit anything that is wrong. Competitor search and ideas are based on this.</p>
+    <label>Summary<textarea data-bind="profile.summary" rows="3">${esc(p.summary)}</textarea></label>
+    <label>Offerings<textarea data-bind="profile.offerings" rows="5">${esc(p.offerings)}</textarea></label>
+    <div class="grid2">
+      <label>Target audience<textarea data-bind="profile.audience" rows="4">${esc(p.audience)}</textarea></label>
+      <label>Your key selling points<textarea data-bind="profile.usps" rows="4">${esc(p.usps)}</textarea></label>
+    </div>
+    <div class="actions"><button class="btn primary" data-act="toComps">Find competitors</button></div>
+  </div>` : ''}`;
+}
+
+function viewCompetitors() {
+  const list = S.competitors;
+  return `
+  <h1>Your competitors</h1>
+  <p class="lede">We found these from live search. Untick or remove the ones that do not matter, and add any we missed.</p>
+  <div class="panel">
+    ${list.length ? list.map(c => `
+      <div class="crow ${c.selected ? '' : 'off'}">
+        <input type="checkbox" data-act="toggleComp" data-id="${c.id}" ${c.selected ? 'checked' : ''} aria-label="Include ${esc(c.name)}">
+        <div><div class="cname">${esc(c.name)}<span class="pill ${esc(c.type)}">${esc(c.type || 'competitor')}</span></div>
+          ${safeUrl(c.website) ? `<a class="clink" href="${esc(safeUrl(c.website))}" target="_blank" rel="noopener">${esc(host(c.website))}</a>` : ''}
+          <p>${esc(c.why)}</p></div>
+        <button class="icon" data-act="removeComp" data-id="${c.id}" aria-label="Remove ${esc(c.name)}">×</button>
+      </div>`).join('') : `<div class="empty">No competitors yet. Run the search or add one below.</div>`}
+    <div class="addrow">
+      <label>Competitor name<input data-bind="t.newName" value="${esc(T.newName)}" placeholder="e.g. Coursera"></label>
+      <label>Website<input data-bind="t.newWeb" value="${esc(T.newWeb)}" placeholder="coursera.org"></label>
+      <button class="btn" data-act="addComp" style="margin-bottom:14px">Add</button>
+    </div>
+    <div class="actions">
+      <button class="btn" data-act="findComps" ${UI.busy ? 'disabled' : ''}>${list.length ? 'Find more competitors' : 'Find competitors'}</button>
+      <button class="btn primary" data-act="toInsights" ${selComps().length ? '' : 'disabled'}>Continue with ${selComps().length} competitor${selComps().length === 1 ? '' : 's'}</button>
+    </div>
+  </div>`;
+}
+
+function resultHTML(c) {
+  const a = S.analysis[c.id]; if (!a) return '';
+  const li = (items, f) => arr(items).length ? `<ul>${arr(items).map(f).join('')}</ul>` : '<span class="hint">Nothing found.</span>';
+  return `<div class="res">
+    <section class="wide"><span class="pill ${a.evidence_level === 'ads_provided' ? 'ok' : 'warn'}" style="margin:0">${a.evidence_level === 'ads_provided' ? 'Based on the ads you provided' : 'Based on public web messaging, not their live ads'}</span>
+      ${a.confidence_note ? `<span class="hint" style="display:block;margin-top:6px">${esc(a.confidence_note)}</span>` : ''}</section>
+    <section><h4>USPs they push</h4>${li(a.usps, u => `<li>${esc(tx(u, 'usp', 'text'))}${u.evidence ? `<small>${esc(u.evidence)}</small>` : ''}</li>`)}</section>
+    <section><h4>Creative types</h4>${li(a.creative_types, u => `<li><b>${esc(tx(u, 'type', 'name'))}</b>${u.format ? ` <span class="pill">${esc(u.format)}</span>` : ''}${u.description ? `<small>${esc(u.description)}</small>` : ''}</li>`)}</section>
+    <section><h4>Hooks and angles</h4>${li(a.hooks, u => `<li>${esc(tx(u, 'hook', 'text'))}</li>`)}</section>
+    <section><h4>Offers and CTAs</h4>${li(a.offers_ctas, u => `<li>${esc(tx(u, 'offer', 'text'))}</li>`)}</section>
+    ${S.opts.pain ? `<section><h4>What students expect</h4>${li(a.student_expectations, u => `<li>${esc(tx(u, 'text'))}</li>`)}</section>
+    <section><h4>Pain points they address</h4>${li(a.pain_points, u => `<li>${esc(tx(u, 'text'))}</li>`)}</section>` : ''}
+    ${arr(a.links).length ? `<section class="wide"><h4>Example links</h4><div class="links" style="margin:0">${a.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label || host(l.url))}</a>`).join('')}</div></section>` : ''}
+  </div>`;
+}
+
+function viewInsights() {
+  const comps = selComps();
+  const anyDone = comps.some(c => S.analysis[c.id]);
+  const allDone = comps.length && comps.every(c => S.analysis[c.id]);
+  const ov = S.overview;
+  return `
+  <h1>What your competitors are running</h1>
+  <p class="lede">For each competitor, open their live ads in the links below, then drop in screenshots or paste ad copy and links. We pull out their USPs and creative styles, then turn it all into ideas you can use.</p>
+  <div class="panel">
+    <div class="opts">
+      <label><input type="checkbox" data-bind="opts.scan" ${S.opts.scan ? 'checked' : ''}> Also scan public web messaging</label>
+      <label><input type="checkbox" data-bind="opts.pain" ${S.opts.pain ? 'checked' : ''}> Include student expectations and pain points</label>
+    </div>
+    <div class="actions">
+      <button class="btn primary" data-act="analyzeAll" ${UI.busy ? 'disabled' : ''}>${allDone ? 'Re-analyze all and rebuild ideas' : `Analyze ${comps.length} competitor${comps.length === 1 ? '' : 's'} and build ideas`}</button>
+      ${anyDone ? `<button class="btn" data-act="buildIdeas" ${UI.busy ? 'disabled' : ''}>Rebuild ideas only</button>` : ''}
+    </div>
+    <p class="hint">Meta and Google do not offer a free feed of ads, so the most accurate results come from the screenshots and links you add. With nothing added, we fall back to what their sites, videos and public pages say.</p>
+  </div>
+  <div style="margin-top:18px">
+  ${comps.map(c => {
+    const open = UI.open[c.id]; const a = S.ads[c.id] || { notes: '' }; const imgs = IMAGES[c.id] || [];
+    return `<div class="acc">
+      <header data-act="toggleAcc" data-id="${c.id}"><div><b>${esc(c.name)}</b> <span class="pill ${S.analysis[c.id] ? 'ok' : ''}">${S.analysis[c.id] ? 'Analysed' : 'Not analysed'}</span></div><span aria-hidden="true">${open ? '−' : '+'}</span></header>
+      ${open ? `<div class="body">
+        <div class="links"><a href="${esc(metaLink(c))}" target="_blank" rel="noopener">Meta Ad Library</a><a href="${esc(gLink(c))}" target="_blank" rel="noopener">Google Ads Transparency</a><a href="${esc(ytLink(c))}" target="_blank" rel="noopener">YouTube</a></div>
+        <label>Ad copy, ad links or notes<textarea data-bind="ads.${c.id}.notes" rows="4" placeholder="Paste ad text, Ad Library links, landing pages or YouTube ad links, one per line">${esc(a.notes || '')}</textarea></label>
+        <div class="drop" tabindex="0" data-drop="${c.id}" data-act="pickImg" data-id="${c.id}">Drop screenshots here, paste with Ctrl+V, or click to choose (up to 6)</div>
+        <input type="file" accept="image/*" multiple hidden id="file-${c.id}" data-file="${c.id}">
+        ${imgs.length ? `<div class="thumbs">${imgs.map((im, i) => `<div class="thumb"><img src="${im.url}" alt="Screenshot ${i + 1}"><button data-act="removeImg" data-id="${c.id}" data-i="${i}" aria-label="Remove screenshot">×</button></div>`).join('')}</div>` : ''}
+        <div class="actions" style="margin-top:14px"><button class="btn dark sm" data-act="analyzeOne" data-id="${c.id}" ${UI.busy ? 'disabled' : ''}>${S.analysis[c.id] ? 'Re-analyze' : 'Analyze this competitor'}</button></div>
+        ${resultHTML(c)}
+      </div>` : ''}
+    </div>`;
+  }).join('')}
+  </div>
+  ${S.ideas.length ? `
+  <div style="margin-top:34px">
+    <h2>${S.ideas.length} ideas to use</h2>
+    <p class="hint" style="margin:0 0 14px;font-size:14px">Tick the ones you want creatives for.</p>
+    ${ov ? `<div class="overview">
+      <div><h3>Common USPs</h3><ul>${arr(ov.common_usps).map(x => `<li>${esc(tx(x, 'text'))}</li>`).join('')}</ul></div>
+      <div><h3>Dominant formats</h3><ul>${arr(ov.dominant_formats).map(x => `<li>${esc(tx(x, 'text'))}</li>`).join('')}</ul></div>
+      <div><h3>Gaps you can own</h3><ul>${arr(ov.gaps).map(x => `<li>${esc(tx(x, 'text'))}</li>`).join('')}</ul></div>
+    </div>` : ''}
+    ${S.ideas.map(i => {
+      const on = S.selected.includes(i.id);
+      return `<div class="idea cat-${esc(i.category)} ${on ? 'sel' : ''}" data-act="toggleIdea" data-id="${i.id}">
+        <input type="checkbox" tabindex="-1" ${on ? 'checked' : ''} aria-label="Select idea">
+        <div><span class="tag">${esc(i.category)}${i.difficulty ? ' · ' + esc(i.difficulty) + ' to produce' : ''}</span>
+          <h3>${esc(i.title)}</h3><p>${esc(i.summary)}</p>
+          ${i.why_it_works ? `<p class="meta"><b>Why it works:</b> ${esc(i.why_it_works)}</p>` : ''}
+          ${i.fit_for_us ? `<p class="meta"><b>For you:</b> ${esc(i.fit_for_us)}</p>` : ''}
+          ${arr(i.who_uses).length ? `<p class="meta"><b>Seen with:</b> ${arr(i.who_uses).map(esc).join(', ')}</p>` : ''}
+          <div class="links" style="margin:8px 0 0">${arr(i.example_links).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener" data-stop>${esc(l.label || host(l.url))}</a>`).join('')}</div>
+        </div></div>`;
+    }).join('')}
+  </div>
+  <div class="sticky"><span><b>${S.selected.length}</b> selected</span>
+    <div class="actions" style="margin:0"><button class="btn" data-act="selAll">Select all</button><button class="btn" data-act="selNone">Clear</button>
+    <button class="btn primary" data-act="toCreatives" ${S.selected.length ? '' : 'disabled'}>Get creatives for ${S.selected.length} idea${S.selected.length === 1 ? '' : 's'}</button></div></div>` : ''}`;
+}
+
+function conceptText(c) {
+  return [`${c.title} (${c.format}${c.platform ? ', ' + c.platform : ''})`, `Hook: ${c.hook}`,
+    ...arr(c.script).map(s => `${s.time}: ${s.visual || ''} | VO: ${s.voiceover || ''} | Text: ${s.on_screen_text || ''}`),
+    `Headline: ${c.headline}`, `Primary text: ${c.primary_text}`, `CTA: ${c.cta}`, `Why it works: ${c.why_it_works}`, `Test: ${c.test_tip}`].join('\n');
+}
+
+function viewCreatives() {
+  const ideas = S.ideas.filter(i => S.selected.includes(i.id));
+  const has = ideas.some(i => arr(S.concepts[i.id]).length);
+  return `
+  <h1>Creatives you can shoot or design</h1>
+  <p class="lede">Pick the language and how many concepts per idea. Each concept comes with a hook, a scene-by-scene plan and ready ad copy.</p>
+  <div class="panel">
+    <div class="grid2">
+      <label>Copy language<select data-bind="opts.lang">${['English', 'Hinglish', 'Hindi'].map(l => opt(l, l, S.opts.lang)).join('')}</select></label>
+      <label>Concepts per idea<select data-bind="opts.count">${[5, 6, 8].map(n => opt(String(n), String(n), String(S.opts.count))).join('')}</select></label>
+    </div>
+    <div class="actions"><button class="btn primary" data-act="genConcepts" ${UI.busy || !ideas.length ? 'disabled' : ''}>${has ? 'Regenerate for all selected ideas' : `Generate for ${ideas.length} idea${ideas.length === 1 ? '' : 's'}`}</button>
+      <button class="btn" data-act="goto" data-n="3">Change ideas</button></div>
+  </div>
+  ${has ? `<div class="exports" style="margin-top:18px"><button class="btn sm" data-act="exportMd">Download report (.md)</button><button class="btn sm" data-act="exportJson">Download data (.json)</button><button class="btn sm" data-act="print">Print or save as PDF</button></div>` : ''}
+  ${ideas.map(i => `
+    <div style="margin-top:28px">
+      <h2>${esc(i.title)}</h2><p class="hint" style="font-size:14px;margin:0 0 12px">${esc(i.summary)}</p>
+      ${arr(S.concepts[i.id]).map((c, n) => `
+        <div class="concept">
+          <div class="top"><div><span class="pill" style="margin:0">${esc(c.format)}</span>${c.platform ? `<span class="pill">${esc(c.platform)}</span>` : ''}<h3 style="margin-top:8px;font-size:18px">${esc(c.title)}</h3></div>
+            <button class="btn sm" data-act="copyConcept" data-id="${i.id}" data-i="${n}">Copy</button></div>
+          <div class="hook">${esc(c.hook)}</div>
+          ${arr(c.script).length ? `<div class="scroll"><table class="script"><thead><tr><th>When</th><th>Visual</th><th>Voiceover</th><th>On-screen text</th></tr></thead><tbody>
+            ${c.script.map(s => `<tr><td>${esc(s.time)}</td><td>${esc(s.visual)}</td><td>${esc(s.voiceover)}</td><td>${esc(s.on_screen_text)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+          <div class="copyblock"><b>Headline:</b> ${esc(c.headline)}<br><b>Primary text:</b> ${esc(c.primary_text)}<br><b>CTA:</b> ${esc(c.cta)}</div>
+          <p class="hint" style="margin:10px 0 0"><b>Why it works:</b> ${esc(c.why_it_works)}${c.test_tip ? `<br><b>Test it:</b> ${esc(c.test_tip)}` : ''}</p>
+        </div>`).join('') || `<div class="empty">Not generated yet.</div>`}
+    </div>`).join('')}`;
+}
+
+function renderWorking() {
+  const w = $('#working'), b = UI.busy;
+  if (!b) { w.classList.remove('on'); w.innerHTML = ''; return; }
+  const pct = b.total ? Math.round(b.done / b.total * 100) : 12;
+  w.innerHTML = `<b>${esc(b.title)}</b>${b.detail ? `<small>${esc(b.detail)}</small>` : ''}<div class="bar"><i style="width:${pct}%"></i></div>`;
+  w.classList.add('on');
+}
+
+function renderOverlay() {
+  const o = $('#overlay');
+  if (!UI.drawer) { o.classList.remove('on'); o.innerHTML = ''; return; }
+  if (UI.drawer === 'settings') {
+    o.innerHTML = `<div class="modal" role="dialog" aria-label="Settings"><h2>Settings</h2>
+      <label>Access code<input type="password" data-bind="set.code" value="${esc(settings.code || '')}" autocomplete="off" placeholder="The code you set in Vercel"><span class="hint">Used with the hosted version. Your Gemini key stays on the server.</span></label>
+      <label>Or use your own Gemini key<input type="password" data-bind="set.ownKey" value="${esc(settings.ownKey || '')}" autocomplete="off" placeholder="AIza..."><span class="hint">Runs directly from this browser and overrides the access code. Saved only on this device.</span></label>
+      <label>Model<input list="models" data-bind="set.model" value="${esc(settings.model || '')}" placeholder="${DEFAULT_MODEL}"><datalist id="models"><option value="gemini-3.1-pro-preview"></datalist><span class="hint">Leave blank for ${DEFAULT_MODEL}. If answers time out, try a Flash model listed in Google AI Studio. Any model name from Google AI Studio works.</span></label>
+      <div class="actions"><button class="btn primary" data-act="closeModal">Save and close</button></div></div>`;
+  } else {
+    let list = []; try { list = JSON.parse(localStorage.getItem('mis_projects') || '[]'); } catch {}
+    o.innerHTML = `<div class="modal" role="dialog" aria-label="History"><h2>Saved research</h2>
+      ${list.length ? list.map(p => `<div class="proj"><div><b>${esc(p.biz?.name || 'Untitled')}</b><div class="hint">${new Date(p.updated || Date.now()).toLocaleString()} · ${arr(p.competitors).length} competitors · ${arr(p.ideas).length} ideas</div></div>
+        <div class="actions" style="margin:0"><button class="btn sm" data-act="loadProj" data-id="${p.id}">Open</button><button class="btn sm" data-act="delProj" data-id="${p.id}">Delete</button></div></div>`).join('') : '<div class="empty">Nothing saved yet. Research is saved on this device automatically.</div>'}
+      <div class="actions" style="margin-top:16px"><button class="btn" data-act="closeModal">Close</button></div></div>`;
+  }
+  o.classList.add('on');
+}
+function render() { renderRail(); renderMain(); renderWorking(); renderOverlay(); }
+
+/* ---------- core actions ---------- */
+async function analyzeBiz() {
+  const b = S.biz;
+  if (!b.name.trim() || (!b.url.trim() && !b.desc.trim())) return fail(new Error('Add your business name plus a website or a short description.'));
+  UI.error = ''; busy('Reading your business', 'Visiting your site and searching the web');
+  const url = b.url.trim() ? (/^https?:/.test(b.url.trim()) ? b.url.trim() : 'https://' + b.url.trim()) : '';
+  const prompt = `Build a business profile.
+Business name: ${b.name}
+Website: ${url || '(not provided)'}
+Description from the owner: ${b.desc || '(none)'}
+Audience hint: ${b.audience || '(none)'}
+Market: ${b.country === 'ALL' ? 'global' : b.country}
+
+Read the website (and search the web if useful). Do not invent prices or claims you cannot find; leave price_info empty instead.
+Return JSON: {"summary":"2-3 sentences on what the business is","offerings":[{"name":"","description":"","price_info":""}],"target_audience":["..."],"key_usps":["..."],"category":"","competitor_search_terms":["..."]}`;
+  try {
+    let res;
+    try { res = await askJSON({ parts: [{ text: prompt }], tools: [{ urlContext: {} }, { googleSearch: {} }], temperature: 0.3 }); }
+    catch (e) { if (/tool|url_context|urlContext/i.test(e.message)) res = await askJSON({ parts: [{ text: prompt }], tools: [{ googleSearch: {} }], temperature: 0.3 }); else throw e; }
+    const d = res.data;
+    S.profile = {
+      summary: d.summary || '',
+      offerings: arr(d.offerings).map(o => `• ${tx(o, 'name')}${o.description ? ': ' + o.description : ''}${o.price_info ? ' (' + o.price_info + ')' : ''}`).join('\n'),
+      audience: arr(d.target_audience).map(x => '• ' + tx(x, 'text')).join('\n'),
+      usps: arr(d.key_usps).map(x => '• ' + tx(x, 'text')).join('\n'),
+      terms: arr(d.competitor_search_terms).join(', ')
+    };
+    idle(); render(); saveSoon();
+  } catch (e) { fail(e); }
+}
+
+const bizContext = () => `Business: ${S.biz.name} (${S.biz.url || 'no site'})
+Summary: ${S.profile?.summary || S.biz.desc}
+Offerings:\n${S.profile?.offerings || S.biz.desc}
+Audience:\n${S.profile?.audience || S.biz.audience}
+Our USPs:\n${S.profile?.usps || ''}
+Market: ${S.biz.country === 'ALL' ? 'global' : S.biz.country}`;
+
+async function findComps() {
+  UI.error = ''; busy('Finding competitors', 'Searching the web');
+  const have = S.competitors.map(c => c.name).join(', ');
+  const prompt = `${bizContext()}
+${S.profile?.terms ? 'Search terms: ' + S.profile.terms : ''}
+${have ? 'Already listed (do not repeat): ' + have : ''}
+
+Find 8 to 10 real competitors that target the same customers in this market: mix direct competitors and a few indirect ones (different product, same budget or need). Only include companies you found evidence for, with their real website.
+Return a JSON array: [{"name":"","website":"https://...","type":"direct or indirect","why":"one line on why they compete with us"}]`;
+  try {
+    const { data } = await askJSON({ parts: [{ text: prompt }], tools: [{ googleSearch: {} }], temperature: 0.3 });
+    const seen = new Set(S.competitors.map(c => host(c.website)));
+    arr(Array.isArray(data) ? data : data.competitors).forEach(c => {
+      const w = safeUrl(c.website); if (!c.name || !w || seen.has(host(w))) return;
+      seen.add(host(w));
+      S.competitors.push({ id: uid(), name: String(c.name), website: w, type: /indirect/i.test(c.type) ? 'indirect' : 'direct', why: String(c.why || ''), selected: true });
+    });
+    idle(); render(); saveSoon();
+  } catch (e) { fail(e); }
+}
+
+function allowedLinks(c, sources = []) {
+  const set = new Set([safeUrl(c.website), metaLink(c), gLink(c), ytLink(c)]);
+  (S.ads[c.id]?.notes || '').match(/https?:\/\/[^\s)>\]]+/g)?.forEach(u => set.add(safeUrl(u)));
+  sources.forEach(s => set.add(safeUrl(s.url)));
+  set.delete(''); return set;
+}
+
+async function analyzeComp(c) {
+  const a = S.ads[c.id] || { notes: '' };
+  const notes = a.notes || '';
+  const urls = [...new Set(notes.match(/https?:\/\/[^\s)>\]]+/g) || [])];
+  const yt = urls.filter(u => /youtube\.com\/watch|youtu\.be\//.test(u)).slice(0, 2);
+  const imgs = IMAGES[c.id] || [];
+  const hasEvidence = notes.trim().length > 20 || imgs.length || yt.length;
+  const prompt = `${bizContext()}
+
+COMPETITOR: ${c.name} (${c.website}) - ${c.why}
+Evidence supplied by the user:
+- Notes, ad copy and links: ${notes.trim() || '(none)'}
+- Screenshots attached: ${imgs.length}
+- YouTube videos attached: ${yt.length}
+
+Task: work out how this competitor advertises to students and learners.
+${hasEvidence ? 'Base your answer mainly on the supplied evidence (read the screenshots and videos carefully, including on-screen text, offers, faces, formats). Use web search only to fill gaps.' : 'No ad evidence was supplied. Use their website, YouTube channel, social pages and any press or ad coverage you can find. Say clearly that this is public messaging, not their live ads.'}
+Never invent specific ads, numbers or URLs. Only list example links you actually saw in the evidence or in search results.
+
+Return JSON:
+{"evidence_level":"${hasEvidence ? 'ads_provided' : 'web_only'}","confidence_note":"one line on how reliable this is",
+"usps":[{"usp":"","evidence":"what showed it"}],
+"creative_types":[{"type":"e.g. UGC testimonial, founder talking head, offer banner, comparison, screen recording demo","format":"video/static/carousel","description":"how it looks and flows"}],
+"hooks":["opening lines or angles"],"offers_ctas":["offers, discounts, deadlines, CTA wording"],
+"student_expectations":["what students expect or are promised"],"pain_points":["problems the ads address"],
+"example_links":[{"label":"","url":""}]}`;
+  const mk = withYT => [{ text: prompt }, ...imgs.map(i => ({ inlineData: { mimeType: i.mime, data: i.data } })), ...(withYT ? yt.map(u => ({ fileData: { fileUri: u } })) : [])];
+  const tools = S.opts.scan ? [{ googleSearch: {} }] : [];
+  let res;
+  try { res = await askJSON({ parts: mk(true), tools, temperature: 0.4 }); }
+  catch (e) { if (yt.length) res = await askJSON({ parts: mk(false), tools, temperature: 0.4 }); else throw e; }
+  const d = res.data, ok = allowedLinks(c, res.sources);
+  const links = arr(d.example_links).map(l => ({ label: l.label, url: safeUrl(l.url) })).filter(l => l.url && ok.has(l.url));
+  res.sources.slice(0, 3).forEach(s => { const u = safeUrl(s.url); if (u && !links.some(l => l.url === u)) links.push({ label: s.title || host(u), url: u }); });
+  S.analysis[c.id] = { ...d, evidence_level: hasEvidence ? 'ads_provided' : 'web_only', links, usps: arr(d.usps), creative_types: arr(d.creative_types) };
+  S.analysis[c.id]._ok = [...ok];
+}
+
+async function analyzeOne(id) {
+  const c = S.competitors.find(x => x.id === id); if (!c) return;
+  UI.error = ''; busy('Analysing ' + c.name, 'Reading evidence and searching');
+  try { await analyzeComp(c); idle(); render(); saveSoon(); } catch (e) { fail(e); }
+}
+
+async function analyzeAll() {
+  const comps = selComps(); if (!comps.length) return;
+  UI.error = ''; let done = 0; const errs = [];
+  busy('Analysing competitors', `0 of ${comps.length} done`, 0, comps.length + 1);
+  await pool(comps, 2, async c => {
+    try { await analyzeComp(c); } catch (e) { errs.push(c.name + ': ' + e.message); }
+    done++; busy('Analysing competitors', `${done} of ${comps.length} done`, done, comps.length + 1);
+  });
+  render(); saveSoon();
+  if (!comps.some(c => S.analysis[c.id])) return fail(new Error(errs[0] || 'Analysis failed. Retry.'));
+  await buildIdeas(true);
+  if (errs.length) { UI.error = 'Some competitors could not be analysed: ' + errs.join(' | '); render(); }
+}
+
+async function buildIdeas(chained) {
+  const done = selComps().filter(c => S.analysis[c.id]);
+  if (!done.length) return fail(new Error('Analyze at least one competitor first.'));
+  if (!chained) { UI.error = ''; busy('Building ideas', 'Finding patterns across competitors'); } else busy('Building ideas', 'Finding patterns across competitors', done.length, done.length + 1);
+  const pack = done.map(c => { const a = S.analysis[c.id]; return { competitor: c.name, evidence: a.evidence_level, usps: arr(a.usps).map(u => tx(u, 'usp')), creative_types: arr(a.creative_types).map(u => `${tx(u, 'type')} (${u.format || ''}): ${u.description || ''}`), hooks: arr(a.hooks).map(h => tx(h, 'hook')), offers: arr(a.offers_ctas).map(h => tx(h, 'offer')), pain_points: arr(a.pain_points).map(h => tx(h, 'text')), links: a.links.map(l => l.url) }; });
+  const prompt = `${bizContext()}
+
+COMPETITOR FINDINGS (JSON):
+${JSON.stringify(pack)}
+
+Consolidate this into at least 12 distinct, concrete creative ideas that this business could use in ads. Mix categories. Base each idea on what competitors actually do, plus gaps they leave open.
+For example_links, choose ONLY from the "links" lists above; if none fit, return an empty array.
+Return JSON: {"overview":{"common_usps":["..."],"dominant_formats":["..."],"gaps":["..."]},
+"ideas":[{"title":"","category":"USP or Format or Hook or Offer or Proof or Emotion","summary":"what the idea is","why_it_works":"","who_uses":["competitor names"],"fit_for_us":"how this business would apply it","difficulty":"easy or medium or hard","example_links":[{"competitor":"","label":"","url":""}]}]}`;
+  try {
+    const { data } = await askJSON({ parts: [{ text: prompt }], temperature: 0.7 });
+    const allowed = new Set(); done.forEach(c => (S.analysis[c.id]._ok || []).forEach(u => allowed.add(u)));
+    const cats = ['USP', 'Format', 'Hook', 'Offer', 'Proof', 'Emotion'];
+    S.overview = data.overview || null;
+    S.ideas = arr(data.ideas).map((i, n) => {
+      let links = arr(i.example_links).map(l => ({ label: l.label || l.competitor, url: safeUrl(l.url) })).filter(l => l.url && allowed.has(l.url));
+      if (!links.length) { const c = done.find(c => arr(i.who_uses).some(w => String(w).toLowerCase().includes(c.name.toLowerCase()))) || done[0]; links = [{ label: 'Browse ' + c.name + ' live ads', url: metaLink(c) }]; }
+      return { ...i, id: 'i' + (n + 1), category: cats.includes(i.category) ? i.category : 'USP', example_links: links };
+    });
+    S.selected = []; S.concepts = {};
+    idle(); render(); saveSoon();
+    if (S.ideas.length) setTimeout(() => $('.overview,.idea')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  } catch (e) { fail(e); }
+}
+
+async function genConcepts() {
+  const ideas = S.ideas.filter(i => S.selected.includes(i.id)); if (!ideas.length) return;
+  UI.error = ''; let done = 0; const errs = [];
+  busy('Writing creatives', `0 of ${ideas.length} ideas done`, 0, ideas.length);
+  const n = Number(S.opts.count) || 6;
+  await pool(ideas, 2, async idea => {
+    const prompt = `${bizContext()}
+
+IDEA TO EXECUTE: ${idea.title}
+${idea.summary}
+Why it works: ${idea.why_it_works || ''}
+Competitors doing something similar: ${arr(idea.who_uses).join(', ') || 'n/a'}
+
+Write exactly ${n} different creative concepts for this idea, usable on Meta and YouTube. At least 3 must be short videos or reels (15 to 45 seconds); the rest can be static, carousel or UGC-style. Each must be specific enough to brief an editor or designer today. Copy language: ${S.opts.lang}${S.opts.lang === 'Hinglish' ? ' (Hindi written in Roman script, natural and conversational)' : ''}. Do not make claims about results, rankings or guarantees that the business has not stated.
+For static or carousel formats, use the script array to list frames, with "time" like "Frame 1".
+Return JSON: {"concepts":[{"title":"","format":"Reel 30s or Static or Carousel or UGC testimonial or Talking head","platform":"","hook":"the first 3 seconds or the headline image idea","script":[{"time":"0-3s","visual":"","voiceover":"","on_screen_text":""}],"headline":"","primary_text":"","cta":"","why_it_works":"","test_tip":"what to A/B test"}]}`;
+    try {
+      const { data } = await askJSON({ parts: [{ text: prompt }], temperature: 0.9 });
+      S.concepts[idea.id] = arr(Array.isArray(data) ? data : data.concepts);
+    } catch (e) { errs.push(e.message); }
+    done++; busy('Writing creatives', `${done} of ${ideas.length} ideas done`, done, ideas.length);
+  });
+  idle(); render(); saveSoon();
+  if (errs.length) fail(new Error(errs[0]));
+}
+
+/* ---------- images ---------- */
+function compress(file) {
+  return new Promise((res, rej) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const m = 1280, k = Math.min(1, m / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      const url = cv.toDataURL('image/jpeg', 0.72); URL.revokeObjectURL(u);
+      res({ name: file.name, mime: 'image/jpeg', data: url.split(',')[1], url });
+    };
+    img.onerror = () => rej(new Error('Could not read that image.'));
+    img.src = u;
+  });
+}
+async function addImages(id, files) {
+  const list = IMAGES[id] = IMAGES[id] || [];
+  for (const f of [...files].filter(f => f.type.startsWith('image/'))) {
+    if (list.length >= 6) { toast('Up to 6 screenshots per competitor'); break; }
+    try { list.push(await compress(f)); } catch (e) { toast(e.message); }
+  }
+  UI.open[id] = true; render();
+}
+
+/* ---------- export ---------- */
+function toMarkdown() {
+  let m = `# Market intel report: ${S.biz.name}\n\n${S.profile?.summary || ''}\n\n## Competitors\n` + selComps().map(c => `- ${c.name} (${c.website})`).join('\n');
+  if (S.overview) m += `\n\n## Overview\n**Common USPs:** ${arr(S.overview.common_usps).map(x => tx(x, 'text')).join('; ')}\n\n**Dominant formats:** ${arr(S.overview.dominant_formats).map(x => tx(x, 'text')).join('; ')}\n\n**Gaps:** ${arr(S.overview.gaps).map(x => tx(x, 'text')).join('; ')}`;
+  S.ideas.filter(i => S.selected.includes(i.id)).forEach(i => {
+    m += `\n\n## Idea: ${i.title}\n${i.summary}\n\nWhy it works: ${i.why_it_works || ''}\n\nExamples: ${arr(i.example_links).map(l => `[${l.label}](${l.url})`).join(', ')}\n`;
+    arr(S.concepts[i.id]).forEach((c, n) => { m += `\n### ${n + 1}. ${c.title} (${c.format})\n**Hook:** ${c.hook}\n\n` + arr(c.script).map(s => `- ${s.time}: ${s.visual} | VO: ${s.voiceover} | Text: ${s.on_screen_text}`).join('\n') + `\n\n**Headline:** ${c.headline}\n**Primary text:** ${c.primary_text}\n**CTA:** ${c.cta}\n**Why:** ${c.why_it_works}\n**Test:** ${c.test_tip}\n`; });
+  });
+  return m;
+}
+function download(name, text, type) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- events ---------- */
+const actions = {
+  goto: d => go(+d.n),
+  dismissErr: () => { UI.error = ''; render(); },
+  analyzeBiz,
+  toComps: () => { go(2); if (!S.competitors.length) findComps(); },
+  findComps,
+  toggleComp: d => { const c = S.competitors.find(x => x.id === d.id); if (c) { c.selected = !c.selected; render(); saveSoon(); } },
+  removeComp: d => { S.competitors = S.competitors.filter(x => x.id !== d.id); delete S.analysis[d.id]; render(); saveSoon(); },
+  addComp: () => {
+    const name = T.newName.trim(), w = safeUrl(/^https?:/.test(T.newWeb.trim()) ? T.newWeb.trim() : 'https://' + T.newWeb.trim());
+    if (!name) return fail(new Error('Enter the competitor name.'));
+    S.competitors.push({ id: uid(), name, website: w || '', type: 'direct', why: 'Added by you', selected: true });
+    T.newName = T.newWeb = ''; UI.error = ''; render(); saveSoon();
+  },
+  toInsights: () => { selComps().slice(0, 1).forEach(c => UI.open[c.id] = UI.open[c.id] ?? true); go(3); },
+  toggleAcc: d => { UI.open[d.id] = !UI.open[d.id]; render(); },
+  pickImg: d => $('#file-' + d.id)?.click(),
+  removeImg: d => { (IMAGES[d.id] || []).splice(+d.i, 1); render(); },
+  analyzeAll, analyzeOne: d => analyzeOne(d.id), buildIdeas: () => buildIdeas(false),
+  toggleIdea: d => { const i = S.selected.indexOf(d.id); i >= 0 ? S.selected.splice(i, 1) : S.selected.push(d.id); render(); saveSoon(); },
+  selAll: () => { S.selected = S.ideas.map(i => i.id); render(); saveSoon(); },
+  selNone: () => { S.selected = []; render(); saveSoon(); },
+  toCreatives: () => { go(4); const need = S.ideas.some(i => S.selected.includes(i.id) && !arr(S.concepts[i.id]).length); if (need) genConcepts(); },
+  genConcepts,
+  copyConcept: d => { const c = arr(S.concepts[d.id])[+d.i]; if (c) navigator.clipboard.writeText(conceptText(c)).then(() => toast('Copied'), () => toast('Copy blocked by browser')); },
+  exportMd: () => download(`${S.biz.name || 'report'}-market-intel.md`, toMarkdown(), 'text/markdown'),
+  exportJson: () => download(`${S.biz.name || 'report'}-market-intel.json`, JSON.stringify(S, null, 2), 'application/json'),
+  print: () => window.print(),
+  openSettings: () => { UI.drawer = 'settings'; renderOverlay(); },
+  openHistory: () => { save(); UI.drawer = 'history'; renderOverlay(); },
+  closeModal: () => { UI.drawer = null; localStorage.setItem('mis_settings', JSON.stringify(settings)); render(); },
+  loadProj: d => { const list = JSON.parse(localStorage.getItem('mis_projects') || '[]'); const p = list.find(x => x.id === d.id); if (p) { S = Object.assign(newState(), p); IMAGES = {}; UI = { busy: null, error: '', open: {}, drawer: null }; localStorage.setItem('mis_last', S.id); render(); } },
+  delProj: d => { const list = JSON.parse(localStorage.getItem('mis_projects') || '[]').filter(x => x.id !== d.id); localStorage.setItem('mis_projects', JSON.stringify(list)); if (d.id === S.id) S = newState(); IMAGES = {}; render(); },
+  newProj: () => { save(); S = newState(); IMAGES = {}; UI = { busy: null, error: '', open: {}, drawer: null }; render(); }
+};
+
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-stop]')) return;
+  if (e.target === $('#overlay')) return actions.closeModal();
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  if (b.tagName === 'INPUT' && b.type === 'checkbox') { actions[b.dataset.act]?.(b.dataset, e); return; }
+  if (b.closest('a')) return;
+  actions[b.dataset.act]?.(b.dataset, e);
+});
+function bind(e) {
+  const t = e.target, k = t.dataset?.bind; if (!k) return;
+  const v = t.type === 'checkbox' ? t.checked : t.value;
+  const [root, ...path] = k.split('.');
+  let obj = root === 't' ? T : root === 'set' ? settings : S;
+  if (root !== 't' && root !== 'set') path.unshift(root);
+  const last = path.pop(); for (const p of path) obj = obj[p] = obj[p] || {};
+  obj[last] = last === 'count' ? Number(v) : v;
+  if (root === 'set') localStorage.setItem('mis_settings', JSON.stringify(settings)); else saveSoon();
+  if (t.type === 'checkbox' || t.tagName === 'SELECT') { if (path[0] === 'opts' || k === 'opts.pain' || k === 'opts.scan') renderMain(); }
+}
+document.addEventListener('input', bind);
+document.addEventListener('change', e => {
+  const f = e.target.dataset?.file; if (f) { addImages(f, e.target.files); e.target.value = ''; return; }
+  bind(e);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('[data-bind="t.newName"],[data-bind="t.newWeb"]')) { e.preventDefault(); actions.addComp(); }
+  if (e.key === 'Escape' && UI.drawer) actions.closeModal();
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.drop')) { e.preventDefault(); e.target.click(); }
+});
+['dragover', 'dragleave', 'drop'].forEach(ev => document.addEventListener(ev, e => {
+  const z = e.target.closest?.('[data-drop]'); if (!z) return;
+  e.preventDefault(); z.classList.toggle('over', ev === 'dragover');
+  if (ev === 'drop' && e.dataTransfer?.files?.length) addImages(z.dataset.drop, e.dataTransfer.files);
+}));
+document.addEventListener('paste', e => {
+  const openId = Object.keys(UI.open).find(k => UI.open[k]); if (S.step !== 3 || !openId) return;
+  if (e.target.matches('textarea,input') && !e.clipboardData.files.length) return;
+  const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+  if (files.length) { e.preventDefault(); const z = document.activeElement?.closest?.('[data-drop]'); addImages(z ? z.dataset.drop : openId, files); }
+});
+
+/* ---------- boot ---------- */
+loadLast(); render();
+</script>
+</body>
+</html>
