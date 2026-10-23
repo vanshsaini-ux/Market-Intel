@@ -1,7 +1,0 @@
-{
-  "name": "market-intel-studio",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Competitor ad intelligence and creative idea tool",
-  "engines": { "node": ">=18" }
-}
