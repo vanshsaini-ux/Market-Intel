@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/gemini.js": { "maxDuration": 300 },
+    "api/check.js": { "maxDuration": 30 }
+  }
+}
