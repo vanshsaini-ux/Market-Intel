@@ -1,0 +1,1073 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Intel Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f6; --surface:#fff; --ink:#101a33; --muted:#5b6781; --line:#dbe1ed;
+  --accent:#3340f2; --accent-soft:#e8eaff; --signal:#ffc233; --ok:#0e9f6e; --bad:#d92d4a;
+  --font:'Instrument Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --display:'Bricolage Grotesque','Instrument Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--font);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.app{display:grid;grid-template-columns:288px minmax(0,1fr);min-height:100vh}
+
+/* rail */
+.rail{background:var(--ink);color:#e9edf8;padding:26px 22px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:22px;overflow:auto}
+.brand{font:700 21px/1.1 var(--display);letter-spacing:-.01em}
+.brand small{display:block;font:400 12.5px var(--font);color:#9aa6c6;margin-top:6px;letter-spacing:0}
+.steps{list-style:none;margin:6px 0 0;padding:0;position:relative}
+.steps:before{content:"";position:absolute;left:13px;top:14px;bottom:14px;width:2px;background:#2a3868}
+.step{position:relative;display:flex;gap:14px;align-items:flex-start;padding:9px 0;background:none;border:0;width:100%;text-align:left;cursor:default;color:#8e9bbf}
+.step .dot{flex:none;width:28px;height:28px;border-radius:50%;background:var(--ink);border:2px solid #2a3868;display:grid;place-items:center;font:600 12px var(--font);z-index:1;transition:.2s}
+.step b{display:block;font-weight:600;font-size:14.5px;color:inherit}
+.step span.d{display:block;font-size:12.5px;color:#7885aa}
+.step.can{cursor:pointer;color:#dbe2f5}
+.step.can:hover b{text-decoration:underline}
+.step.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.step.cur{color:#fff}
+.step.cur .dot{background:var(--signal);border-color:var(--signal);color:var(--ink);box-shadow:0 0 0 6px rgba(255,194,51,.18)}
+.tally{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto}
+.tally div{background:#18244a;border-radius:12px;padding:10px 12px}
+.tally strong{display:block;font:700 22px/1 var(--display);color:#fff}
+.tally span{font-size:12px;color:#9aa6c6}
+.railbtns{display:flex;gap:8px;flex-wrap:wrap}
+.railbtns button{flex:1;background:#18244a;border:1px solid #2a3868;color:#e9edf8;padding:8px 10px;border-radius:10px;cursor:pointer;font-size:13px}
+.railbtns button:hover{background:#22306a}
+
+/* main */
+main{padding:38px clamp(18px,4vw,56px) 120px;max-width:1240px;width:100%}
+h1{font:700 clamp(28px,3.4vw,40px)/1.08 var(--display);letter-spacing:-.02em;margin:0 0 10px}
+h2{font:700 22px/1.2 var(--display);letter-spacing:-.01em;margin:0 0 6px}
+h3{font:600 16px/1.3 var(--font);margin:0 0 6px}
+.lede{color:var(--muted);max-width:66ch;margin:0 0 26px;font-size:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px}
+.panel+.panel{margin-top:18px}
+label{display:block;font-weight:600;font-size:13.5px;margin-bottom:14px}
+label>input,label>select,label>textarea{display:block;width:100%;margin-top:6px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:#fbfcfe;font-weight:400;font-size:15px}
+label>textarea{min-height:92px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);background:#fff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px}
+.hint{font-weight:400;color:var(--muted);font-size:12.5px;margin-top:5px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.btn{border:1px solid var(--line);background:#fff;padding:10px 16px;border-radius:11px;cursor:pointer;font-weight:600;font-size:14.5px;transition:.15s}
+.btn:hover{border-color:#b9c3dc}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:#2531d8}
+.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:9px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.icon{background:none;border:0;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;padding:2px 7px;border-radius:8px}
+.icon:hover{background:#f0f2f8;color:var(--bad)}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:#eef0f7;color:var(--muted);vertical-align:middle;margin-left:6px;white-space:nowrap}
+.pill.direct{background:#e6f6ef;color:#0b7a55}
+.pill.indirect{background:#fff4d6;color:#8a6200}
+.pill.ok{background:#e6f6ef;color:#0b7a55}
+.pill.warn{background:#fff4d6;color:#8a6200}
+.pill.video{background:#e4e8ff;color:#2b36c9}
+.pill.static{background:#f3e8ff;color:#7c3aed}
+.pill.carousel{background:#ffe9d9;color:#c2410c}
+.pill.none{background:#eef0f7;color:#7a8499}
+.err{background:#fdecef;border:1px solid #f3b8c3;color:#8f1d33;padding:12px 16px;border-radius:12px;margin-bottom:18px;display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.err button{background:none;border:0;cursor:pointer;font-size:20px;line-height:1;color:inherit}
+.notice{background:var(--accent-soft);border:1px solid #cdd2ff;padding:12px 16px;border-radius:12px;margin-bottom:18px;font-size:14px}
+.empty{color:var(--muted);padding:20px 0;text-align:center}
+.scroll{overflow-x:auto}
+
+/* scan progress */
+.scanstrip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.scanstrip span{font-size:13px;font-weight:600;padding:6px 12px;border-radius:99px;background:#fff;border:1px solid var(--line);color:var(--muted)}
+.scanstrip span.done{background:#e6f6ef;border-color:#bfe7d3;color:#0b7a55}
+.scanstrip span.run{background:#fff8e1;border-color:#ffe08a;color:#7a5a00}
+
+/* sub nav */
+.subnav{position:sticky;top:0;z-index:6;background:rgba(238,241,246,.93);backdrop-filter:blur(8px);padding:10px 0;display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px;border-bottom:1px solid var(--line)}
+.subnav button,.chip{display:inline-block;padding:6px 13px;border-radius:99px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;cursor:pointer}
+.subnav button:hover,.chip:hover{border-color:var(--accent);color:var(--accent)}
+.sec{margin-top:34px;scroll-margin-top:64px}
+.sec:first-of-type{margin-top:0}
+.sec>p.hint{margin:0 0 14px;font-size:14px}
+
+/* tables */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:14px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tbl th{background:#f6f8fc;text-align:left;font-weight:600;font-size:12.5px;color:var(--muted);padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover td{background:#fafbfe}
+.tbl .cname{font-weight:600;font-size:15px}
+.tbl .sub{color:var(--muted);font-size:12.5px;margin-top:2px}
+.tbl .price{font:700 16px var(--display);margin-bottom:2px}
+.tbl ul{margin:0;padding-left:16px}
+.tbl li{margin-bottom:3px}
+.tbl a.lnk,.lnk{color:var(--accent);text-decoration:none;font-weight:500}
+.tbl a.lnk:hover,.lnk:hover{text-decoration:underline}
+.alink{display:inline-flex;gap:5px;align-items:center;margin:0 6px 6px 0;padding:4px 10px;border-radius:99px;border:1px solid #bfe7d3;background:#f1fbf6;color:#0b7a55;font-size:12.5px;font-weight:600;text-decoration:none}
+.alink:hover{background:#e0f6ea}
+.alink.search{border-color:#ffe08a;background:#fffaea;color:#7a5a00}
+.alink.search:hover{background:#fff3cc}
+.alink.un{border-color:#d3d9e8;background:#f6f8fc;color:#33405f}
+.alink.un:hover{background:#eceff7}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:10px}
+.cmp th:first-child,.cmp td:first-child{position:sticky;left:0;background:#fff;z-index:1;min-width:140px;font-weight:600}
+.cmp th:first-child{background:#f6f8fc}
+.cmp td{min-width:170px;font-size:13.5px}
+.cmp td.us{background:var(--accent-soft)}
+.cmp th.us{background:#dfe2ff;color:#2b36c9}
+.vdot{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:99px;margin-bottom:5px}
+.v-better{background:#d7f3e5;color:#0b7a55}
+.v-similar{background:#e9ecf5;color:#4a5876}
+.v-worse{background:#ffe3e8;color:#a3243f}
+.v-unknown{background:#eef0f7;color:#7a8499}
+.twocol{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px}
+.twocol>div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.twocol ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.twocol li{margin-bottom:6px}
+
+/* competitor manager */
+.mgr{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mgr .tag{display:inline-flex;gap:2px;align-items:center;padding:3px 4px 3px 12px;border-radius:99px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600}
+.addrow{display:grid;grid-template-columns:1fr 1fr 1.3fr auto;gap:10px;align-items:end;margin-top:14px}
+.addrow label{margin:0}
+
+/* details */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.acc{background:#fff;border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden;scroll-margin-top:70px}
+.acc.flash{box-shadow:0 0 0 3px #ffd75e}
+.acc>header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 18px;cursor:pointer}
+.acc>header:hover{background:#fafbfe}
+.acc .body{padding:4px 20px 20px;border-top:1px solid var(--line)}
+.res{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.res section{background:#f6f8fc;border-radius:12px;padding:14px 16px}
+.res section.wide{grid-column:1/-1}
+.res h4{margin:0 0 8px;font:600 14px var(--font)}
+.res ul{margin:0;padding-left:18px}
+.res li{margin-bottom:6px;font-size:14px}
+.res li small{color:var(--muted);display:block}
+.adrow{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.adrow:last-child{border-bottom:0}
+.drop{border:2px dashed #c5cde0;border-radius:12px;padding:14px;text-align:center;color:var(--muted);font-size:14px;cursor:pointer;background:#fbfcfe}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.thumb{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(16,26,51,.8);color:#fff;cursor:pointer;line-height:1}
+.opts{display:flex;gap:22px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.opts label{display:flex;gap:9px;align-items:center;margin:0;font-weight:500}
+.opts input{width:18px;height:18px;accent-color:var(--accent)}
+
+/* ideas */
+.idea{display:grid;grid-template-columns:34px 1fr;gap:12px;background:#fff;border:1px solid var(--line);border-left:6px solid var(--c,#8a95b3);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.idea.sel{background:var(--accent-soft);border-color:#cdd2ff;border-left-color:var(--c,var(--accent))}
+.idea>input{width:20px;height:20px;accent-color:var(--accent);margin-top:3px}
+.idea .tag{font-size:12px;font-weight:600;color:var(--c,var(--muted))}
+.idea p{margin:4px 0;font-size:14.5px}
+.idea .meta{color:var(--muted);font-size:13.5px}
+.cat-USP{--c:#3340f2}.cat-Format{--c:#c2410c}.cat-Hook{--c:#7c3aed}.cat-Offer{--c:#0e9f6e}.cat-Proof{--c:#0369a1}.cat-Emotion{--c:#be185d}
+.pbox{margin-top:10px;background:#101a33;color:#e9edf8;border-radius:12px;padding:12px 14px}
+.pbox .ph{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-size:12.5px;color:#9aa6c6;font-weight:600}
+.pbox pre{margin:0;white-space:pre-wrap;word-break:break-word;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;max-height:150px;overflow:auto}
+.pbox.open pre{max-height:none}
+.pbox .btn{background:#18244a;border-color:#2a3868;color:#fff}
+.pbox .btn.cp{background:var(--signal);border-color:var(--signal);color:var(--ink)}
+.sticky{position:fixed;left:288px;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:14px clamp(18px,4vw,56px);display:flex;gap:12px;align-items:center;justify-content:space-between;z-index:5}
+.concept{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:14px}
+.concept .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.hook{font:600 17px/1.35 var(--display);margin:10px 0;padding:12px 16px;background:#fff8e1;border-left:4px solid var(--signal);border-radius:0 10px 10px 0}
+.script{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+.script th{text-align:left;font-weight:600;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line);font-size:12.5px}
+.script td{padding:8px;border-bottom:1px solid #eef0f6;vertical-align:top}
+.script td:first-child{white-space:nowrap;font-weight:600}
+.copyblock{background:#f6f8fc;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:10px}
+.exports{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+
+/* overlays */
+#overlay{position:fixed;inset:0;background:rgba(16,26,51,.55);display:none;place-items:center;z-index:30;padding:18px}
+#overlay.on{display:grid}
+.modal{background:#fff;border-radius:18px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:26px}
+.modal h2{margin-bottom:14px}
+.working{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 16px;border-radius:14px;z-index:20;min-width:300px;max-width:92vw;box-shadow:0 12px 36px rgba(16,26,51,.35);display:none}
+.working.on{display:block}
+.working .wrow{display:flex;gap:14px;justify-content:space-between;align-items:center}
+.working .btn{background:#18244a;border-color:#2a3868;color:#fff}
+.working .bar{height:5px;background:#2a3868;border-radius:9px;margin-top:9px;overflow:hidden}
+.working .bar i{display:block;height:100%;background:var(--signal);transition:width .3s}
+.working small{color:#9aa6c6;display:block}
+#toast{position:fixed;top:18px;right:18px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;z-index:40;opacity:0;transform:translateY(-8px);transition:.25s;pointer-events:none}
+#toast.on{opacity:1;transform:none}
+.proj{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .rail{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 16px;gap:12px}
+  .brand small,.tally,.step span.d,.steps:before{display:none}
+  .steps{display:flex;gap:4px;margin:0;flex:1 1 100%;order:3;overflow:auto}
+  .step{padding:4px 8px;width:auto;align-items:center;gap:8px}
+  .step b{font-size:13px;white-space:nowrap}
+  .railbtns{margin-left:auto;flex:none}
+  .grid2,.grid3,.res,.twocol,.addrow{grid-template-columns:1fr}
+  .sticky{left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media print{
+  .rail,.sticky,.exports,.working,.btn,.icon,.actions,#toast,.subnav,.drop{display:none!important}
+  .app{display:block}body{background:#fff}main{padding:0;max-width:none}
+  .concept,.idea,.panel,.acc{break-inside:avoid}
+  .acc .body{display:block!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" id="rail"></aside>
+  <main id="main"></main>
+</div>
+<div id="overlay"></div>
+<div class="working" id="working" role="status" aria-live="polite"></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ================= helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => { try { const x = new URL(String(u).trim()); return /^https?:$/.test(x.protocol) ? x.href : ''; } catch { return ''; } };
+const host = u => { try { return new URL(/^https?:/.test(u) ? u : 'https://' + u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } };
+const uid = () => Math.random().toString(36).slice(2, 10);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const arr = x => Array.isArray(x) ? x : [];
+const tx = (x, ...keys) => { if (x == null) return ''; if (typeof x === 'string') return x; for (const k of keys) if (x[k]) return String(x[k]); return ''; };
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+const DEFAULT_MODEL = 'gemini-3.1-pro-preview';
+
+/* ================= state ================= */
+let settings = {};
+try { settings = JSON.parse(lsGet('mis2_settings') || '{}'); } catch {}
+const newState = () => ({
+  id: uid(), step: 1, maxStep: 1,
+  biz: { name: '', url: '', course: '', partner: '', match: 'exact', desc: '', price: '', audience: '', country: 'IN', lang: 'English' },
+  profile: null, competitors: [], research: {}, ads: {}, comparison: null,
+  ideas: [], selected: [], concepts: {}, opts: { pain: true, count: 6 }, scanned: false, matchNote: ''
+});
+let S = newState();
+let T = { newName: '', newWeb: '', newCourse: '' };
+let IMAGES = {};
+let UI = { busy: null, error: '', open: {}, drawer: null, scan: null, promptOpen: {} };
+let STOPPED = false, CTL = null;
+
+let saveTimer;
+function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
+function save() {
+  if (!S.biz.name && S.step === 1) return;
+  try {
+    const list = JSON.parse(lsGet('mis2_projects') || '[]');
+    const snap = JSON.parse(JSON.stringify(S)); snap.updated = Date.now();
+    const i = list.findIndex(p => p.id === S.id);
+    if (i >= 0) list[i] = snap; else list.unshift(snap);
+    lsSet('mis2_projects', JSON.stringify(list.slice(0, 25)));
+    lsSet('mis2_last', S.id);
+  } catch {}
+}
+function loadLast() {
+  try {
+    const list = JSON.parse(lsGet('mis2_projects') || '[]');
+    const p = list.find(x => x.id === lsGet('mis2_last'));
+    if (p) S = Object.assign(newState(), p);
+  } catch {}
+}
+
+/* ================= Gemini client ================= */
+const SYS = `You are a senior performance-marketing strategist and market researcher who works with Indian edtech and online-learning brands (JEE, NEET, UPSC, upskilling, online degrees, IIT/IIM-branded programs). Be specific, practical and evidence-based. Never invent facts, prices, ads, statistics, quotes or URLs. If something is unknown or unverified, say so plainly. When asked for JSON, return only valid JSON with no commentary and no markdown fences.`;
+
+function friendly(status, msg, raw) {
+  if (status === 504 || /FUNCTION_INVOCATION_TIMEOUT|timed out/i.test(raw || '')) return 'The request took too long. Retry, or set a faster model under Research model in Settings.';
+  if (status === 401) return 'Access code not accepted. Open Settings and re-enter it.';
+  if (status === 404 && !settings.ownKey && !/models\//i.test(raw || '')) return 'No server found at /api/gemini. Deploy to Vercel, or add your own Gemini key in Settings.';
+  if (status === 429) return 'Gemini rate limit reached. Wait a minute and retry.';
+  return msg;
+}
+async function gemini({ parts, tools = [], kind = 'main' }) {
+  const body = {
+    contents: [{ role: 'user', parts }],
+    systemInstruction: { parts: [{ text: SYS }] },
+    generationConfig: { maxOutputTokens: 32000 }
+  };
+  if (tools.length) body.tools = tools;
+  const model = ((kind === 'research' ? settings.researchModel : '') || settings.model || '').trim();
+  let lastErr;
+  for (let a = 0; a < 4; a++) {
+    if (STOPPED) throw Object.assign(new Error('Stopped.'), { cancelled: true });
+    if (!CTL || CTL.signal.aborted) CTL = new AbortController();
+    let r;
+    try {
+      if (settings.ownKey) {
+        r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model || DEFAULT_MODEL}:generateContent`, {
+          method: 'POST', signal: CTL.signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.ownKey.trim() }, body: JSON.stringify(body) });
+      } else {
+        r = await fetch('/api/gemini', { method: 'POST', signal: CTL.signal, headers: { 'Content-Type': 'application/json', 'x-access-code': (settings.code || '').trim() }, body: JSON.stringify({ model, body }) });
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') throw Object.assign(new Error('Stopped.'), { cancelled: true });
+      lastErr = new Error('Network error. Check your connection and retry.');
+      if (a < 3) { await sleep(1500 * (a + 1)); continue; }
+      throw lastErr;
+    }
+    const raw = await r.text(); let j = null; try { j = JSON.parse(raw); } catch {}
+    if (r.ok && j) return parseResp(j);
+    const msg = j?.error?.message || raw.slice(0, 180) || ('HTTP ' + r.status);
+    lastErr = new Error(friendly(r.status, msg, raw));
+    if ([429, 500, 502, 503].includes(r.status) && a < 3) { await sleep(2500 * (a + 1)); continue; }
+    throw lastErr;
+  }
+  throw lastErr;
+}
+function parseResp(j) {
+  const c = j.candidates?.[0];
+  if (!c) throw new Error(j.promptFeedback?.blockReason ? 'Gemini blocked this request (' + j.promptFeedback.blockReason + ').' : 'Gemini returned an empty answer. Retry.');
+  const text = (c.content?.parts || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
+  const sources = (c.groundingMetadata?.groundingChunks || []).map(x => x.web).filter(Boolean).map(w => ({ url: w.uri, title: w.title || '' }));
+  if (!text.trim()) throw new Error('Gemini returned an empty answer. Retry.');
+  return { text, sources };
+}
+function matchEnd(t, i) {
+  const open = t[i], close = open === '{' ? '}' : ']';
+  let d = 0, inS = false, es = false;
+  for (let k = i; k < t.length; k++) {
+    const c = t[k];
+    if (inS) { if (es) es = false; else if (c === '\\') es = true; else if (c === '"') inS = false; continue; }
+    if (c === '"') { inS = true; continue; }
+    if (c === open) d++; else if (c === close) { d--; if (d === 0) return k; }
+  }
+  return -1;
+}
+function extractJSON(t) {
+  t = String(t).replace(/```json|```/gi, '');
+  let best = null;
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] !== '{' && t[i] !== '[') continue;
+    const end = matchEnd(t, i); if (end < 0) continue;
+    const s = t.slice(i, end + 1);
+    for (const cand of [s, s.replace(/,\s*([}\]])/g, '$1')]) {
+      try {
+        const v = JSON.parse(cand);
+        if (v && typeof v === 'object' && (Array.isArray(v) ? v.length && v.every(x => x && typeof x === 'object') : Object.keys(v).length)) {
+          if (!best || s.length > best.len) best = { v, len: s.length };
+          i = end; break;
+        }
+      } catch {}
+    }
+  }
+  if (!best) throw new Error('no json');
+  return best.v;
+}
+async function askJSON(opts) {
+  let r;
+  try { r = await gemini(opts); }
+  catch (e) {
+    if (!e.cancelled && arr(opts.tools).length > 1 && /tool|url_context|urlContext|not supported|invalid/i.test(e.message)) r = await gemini({ ...opts, tools: opts.tools.filter(t => t.googleSearch) });
+    else throw e;
+  }
+  try { return { data: extractJSON(r.text), sources: r.sources }; }
+  catch {
+    const r2 = await gemini({ parts: [{ text: 'Convert the following into valid JSON only (no commentary, no markdown), keeping all content:\n\n' + r.text }] });
+    return { data: extractJSON(r2.text), sources: r.sources };
+  }
+}
+async function pool(items, n, fn) {
+  const q = [...items];
+  await Promise.all(Array.from({ length: Math.min(n, q.length) }, async () => { while (q.length) await fn(q.shift()); }));
+}
+async function checkLinks(urls) {
+  urls = [...new Set(urls.filter(Boolean))].slice(0, 40);
+  if (!urls.length || settings.ownKey || !settings.code) return {};
+  try {
+    const r = await fetch('/api/check', { method: 'POST', signal: CTL?.signal, headers: { 'Content-Type': 'application/json', 'x-access-code': settings.code.trim() }, body: JSON.stringify({ urls }) });
+    if (!r.ok) return {};
+    return (await r.json()).results || {};
+  } catch { return {}; }
+}
+
+/* ================= UI helpers ================= */
+function busy(title, detail = '', done = 0, total = 0) { UI.busy = { title, detail, done, total }; renderWorking(); }
+function idle() { UI.busy = null; UI.scan = null; renderWorking(); }
+function fail(e) {
+  if (e?.cancelled) { idle(); render(); toast('Stopped'); return; }
+  UI.error = e?.message || String(e); idle(); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('on'), 1800); }
+function go(n) { S.step = n; S.maxStep = Math.max(S.maxStep, n); UI.error = ''; render(); window.scrollTo({ top: 0 }); saveSoon(); }
+function scanSet(label, done = 0, total = 0) { UI.scan = { label, done, total }; busy(label, total ? `${done} of ${total}` : '', done, total || 1); if (S.step === 2) renderMain(); }
+const selComps = () => S.competitors.filter(c => c.selected);
+const matchPill = c => ({ exact: '<span class="pill ok" style="margin:0">Exact same course</span>', close: '<span class="pill warn" style="margin:0">Close match</span>', related: '<span class="pill none" style="margin:0">Related only</span>', none: '<span class="pill none" style="margin:0">Different course</span>' }[c.match] || '');
+const metaLink = c => `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=${encodeURIComponent(S.biz.country || 'IN')}&q=${encodeURIComponent(c.name)}&search_type=keyword_unordered&media_type=all`;
+const gLink = c => `https://adstransparency.google.com/?region=${encodeURIComponent(S.biz.country || 'IN')}${c.website ? '&domain=' + encodeURIComponent(host(c.website)) : ''}`;
+const ytLink = c => `https://www.youtube.com/results?search_query=${encodeURIComponent(c.name + ' ' + (S.biz.course || '') + ' ad')}`;
+const opt = (v, l, cur) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${esc(l)}</option>`;
+const fmtWord = f => ({ video: 'Video', static: 'Static', carousel: 'Carousel' }[f] || 'Ad');
+const normFmt = f => { f = String(f || '').toLowerCase(); return /video|reel|short|film/.test(f) ? 'video' : /carousel|slider|multi/.test(f) ? 'carousel' : /static|image|banner|poster|photo/.test(f) ? 'static' : 'unknown'; };
+
+/* ================= context ================= */
+const bizContext = () => `OUR BUSINESS: ${S.biz.name} (${S.biz.url || 'no site'})
+Course or program being advertised: ${S.biz.course || '(see details)'}
+Institute or certifying partner: ${S.biz.partner || 'not stated'}
+Exact course identity: ${S.profile?.identity || S.biz.course || '(see details)'}
+Our price: ${S.biz.price || S.profile?.price || 'not given'}
+Summary: ${S.profile?.summary || S.biz.desc}
+Offerings:\n${S.profile?.offerings || S.biz.desc}
+Audience:\n${S.profile?.audience || S.biz.audience}
+Our key selling points:\n${S.profile?.usps || ''}
+Market: ${S.biz.country === 'ALL' ? 'global' : S.biz.country}`;
+
+/* ================= pipeline ================= */
+async function buildProfile() {
+  const b = S.biz;
+  const url = b.url.trim() ? (/^https?:/.test(b.url.trim()) ? b.url.trim() : 'https://' + b.url.trim()) : '';
+  const prompt = `Build a profile of the offer we want to advertise.
+Business: ${b.name}
+Website: ${url || '(not provided)'}
+Course or program: ${b.course || '(not named)'}
+Details from the owner: ${b.desc || '(none)'}
+Our price (if given): ${b.price || '(not given)'}
+Audience hint: ${b.audience || '(none)'}
+Market: ${b.country === 'ALL' ? 'global' : b.country}
+
+Read the website if given (focus on the named course) and search the web if useful. Do not invent prices or claims; leave price empty if unknown.
+Return JSON: {"summary":"2-3 sentences on the course and who it is for","offerings":[{"name":"","description":"","price_info":""}],"price":"price as advertised","duration":"","mode":"","target_audience":["..."],"key_usps":["..."],"identity":"the exact identity of this course: subject, level, institute or partner, duration and certificate type","category":"","competitor_search_terms":["..."]}`;
+  const { data: d } = await askJSON({ parts: [{ text: prompt }], tools: [{ urlContext: {} }, { googleSearch: {} }] });
+  S.profile = {
+    summary: d.summary || '', price: b.price || d.price || '',
+    offerings: arr(d.offerings).map(o => `• ${tx(o, 'name')}${o.description ? ': ' + o.description : ''}${o.price_info ? ' (' + o.price_info + ')' : ''}`).join('\n'),
+    audience: arr(d.target_audience).map(x => '• ' + tx(x, 'text')).join('\n'),
+    usps: arr(d.key_usps).map(x => '• ' + tx(x, 'text')).join('\n'),
+    duration: d.duration || '', mode: d.mode || '', identity: d.identity || '', terms: arr(d.competitor_search_terms).join(', ')
+  };
+}
+
+async function findComps(more) {
+  const have = S.competitors.map(c => c.name).join(', ');
+  const exactOnly = S.biz.match !== 'close';
+  const prompt = `${bizContext()}
+${S.profile?.terms ? 'Search terms: ' + S.profile.terms : ''}
+${have ? 'Already listed (do not repeat): ' + have : ''}
+
+Find companies that sell the EXACT SAME course as ours to learners in this market. "Exact same" means the same program: the same subject and level and, if our course is run with an institute or partner (for example IIT Roorkee or IIM Calcutta), that same institute's program with the same or near-identical duration and certificate, sold by a different company or platform. Search for the program name together with the institute name and words like certification, online, enroll and fees.
+Label each result with match: "exact" (same program, confirmed on their page), "close" (same subject and level, but a different program, institute or duration), or "related" (same learner goal only). ${exactOnly ? 'List every exact match you can find first, then at most 3 close ones.' : 'List exact matches first, then close ones, then at most 2 related.'} Give up to ${more ? 4 : 8} companies. Only include companies you found evidence for, with the real course page URL you saw.
+Return a JSON array: [{"name":"","website":"https://...","type":"direct or indirect","match":"exact or close or related","match_reason":"what is the same and what differs","similar_course":"their course name","course_url":"the exact course page URL you saw, or empty"}]`;
+  const { data } = await askJSON({ parts: [{ text: prompt }], tools: [{ googleSearch: {} }] });
+  const seen = new Set(S.competitors.map(c => host(c.website) || c.name.toLowerCase()));
+  arr(Array.isArray(data) ? data : data.competitors).forEach(c => {
+    const w = safeUrl(c.website), key = host(w) || String(c.name || '').toLowerCase();
+    if (!c.name || !key || seen.has(key)) return; seen.add(key);
+    const m = ['exact', 'close', 'related'].includes(String(c.match).toLowerCase()) ? String(c.match).toLowerCase() : 'related';
+    S.competitors.push({ id: uid(), name: String(c.name), website: w, type: /indirect/i.test(c.type) ? 'indirect' : 'direct', why: String(c.why || ''), course: String(c.similar_course || ''), courseUrl: safeUrl(c.course_url), match: m, matchReason: String(c.match_reason || ''), selected: m === 'exact' || (m === 'close' && !exactOnly) });
+  });
+  if (exactOnly && !S.competitors.some(c => c.selected)) S.competitors.forEach(c => { if (c.match === 'close') c.selected = true; });
+}
+
+const PLATFORMS = ['youtube.com', 'youtu.be', 'facebook.com', 'fb.watch', 'fb.com', 'instagram.com', 'linkedin.com', 'x.com', 'twitter.com', 'adstransparency.google.com', 'pinterest.com', 't.me'];
+const sameSite = (h, d) => h === d || h.endsWith('.' + d);
+function domainOK(url, c, sources) {
+  const h = host(url); if (!h || /vertexaisearch|googleusercontent/.test(h)) return false;
+  if (c.website && sameSite(h, host(c.website))) return true;
+  if (PLATFORMS.some(p => sameSite(h, p))) return true;
+  return sources.some(s => { const t = String(s.title || '').toLowerCase().replace(/^www\./, ''); return t && (h === t || h.endsWith('.' + t) || t.endsWith('.' + h)); });
+}
+
+async function researchComp(c) {
+  S.research[c.id] = { ...(S.research[c.id] || {}), status: 'running' };
+  const a = S.ads[c.id] || { notes: '' };
+  const notes = (a.notes || '').trim();
+  const imgs = IMAGES[c.id] || [];
+  const prompt = `${bizContext()}
+
+COMPETITOR: ${c.name} (${c.website || 'website unknown'}) - ${c.why}
+Their version of our course (if known): ${c.course || 'unknown'}${c.courseUrl ? '\nCourse page to read first: ' + c.courseUrl : ''}
+Match found earlier: ${c.match || 'unknown'} ${c.matchReason ? '(' + c.matchReason + ')' : ''}
+Evidence supplied by the user (ad copy, links, notes): ${notes || '(none)'}
+Screenshots attached: ${imgs.length}
+
+Research how this competitor sells the SAME course as ours and how they advertise it. Use Google Search and read their course and pricing pages.
+1. Their version of this exact course: the page URL you actually opened or saw, the course name, the price or offer price as shown (say "Not shown" if absent), duration, mode and key features. Check it really is the same program: same subject and level, and the same institute or partner and certificate as ours. Set match to "exact" if it is, "close" if it is the same subject but differs in institute, duration or certificate, and "different" if they do not sell this course. In match_reason say what is the same and what differs.
+2. Their ads for this course. Look for Meta (Facebook and Instagram) ad library entries, YouTube ads or promo videos, Google ads, LinkedIn or Instagram posts, and landing pages used in ads. For each ad found give the platform, format (video, static or carousel), what it shows or says, and the USPs it pushes. Give a URL ONLY if you saw that exact URL in search results or on a page you read. Never guess or construct URLs, video IDs or ad IDs. If you cannot find specific ads, return an empty ads array and say so in confidence_note.
+3. Overall: USPs pushed in their advertising, creative types, hooks, offers and CTAs, what students expect, and pain points addressed.
+Return JSON:
+{"course":{"name":"","url":"","match":"exact or close or different","match_reason":"","price":"","price_note":"e.g. EMI, discount, validity","duration":"","mode":"","features":[""]},
+"positioning":"one line",
+"ads":[{"platform":"Meta or YouTube or Google or Instagram or LinkedIn or Website","format":"video or static or carousel","what":"what it shows or says","usps":[""],"url":""}],
+"ad_usps":[{"usp":"","where_seen":""}],
+"creative_types":[{"type":"","description":""}],
+"hooks":[""],"offers_ctas":[""],"student_expectations":[""],"pain_points":[""],
+"confidence_note":"how reliable and complete this is"}`;
+  const parts = [{ text: prompt }, ...imgs.map(i => ({ inlineData: { mimeType: i.mime, data: i.data } }))];
+  const { data: d, sources } = await askJSON({ parts, tools: [{ urlContext: {} }, { googleSearch: {} }], kind: 'research' });
+  const srcs = sources.map(s => ({ url: safeUrl(s.url), title: s.title })).filter(s => s.url);
+  const course = d.course || {};
+  const courseUrl = safeUrl(course.url) && domainOK(course.url, c, srcs) ? safeUrl(course.url) : '';
+  const ads = arr(d.ads).map(x => ({ platform: String(x.platform || ''), format: normFmt(x.format), what: String(x.what || ''), usps: arr(x.usps).map(u => tx(u, 'usp', 'text')).filter(Boolean), url: safeUrl(x.url) && domainOK(x.url, c, srcs) ? safeUrl(x.url) : '', status: 'unchecked' })).slice(0, 8);
+  const notesUrls = (notes.match(/https?:\/\/[^\s)>\]]+/g) || []).map(safeUrl).filter(Boolean);
+  notesUrls.forEach(u => { if (!ads.some(x => x.url === u)) ads.push({ platform: host(u).replace(/\.com$/, ''), format: 'unknown', what: 'Link you added', usps: [], url: u, status: 'unchecked', mine: true }); });
+  const checks = await checkLinks([courseUrl, ...ads.map(x => x.url)]);
+  ads.forEach(x => { if (x.url && checks[x.url]) x.status = checks[x.url].status; });
+  const liveAds = ads.filter(x => !(x.url && x.status === 'dead')).map(x => (x.url && x.status === 'dead') ? { ...x, url: '' } : x);
+  const courseStatus = courseUrl && checks[courseUrl] ? checks[courseUrl].status : 'unchecked';
+  const fm = new Set(liveAds.map(x => x.format).filter(f => f !== 'unknown'));
+  const rm = String(course.match || '').toLowerCase();
+  if (rm === 'exact' || rm === 'close') c.match = rm; else if (rm === 'different') c.match = 'none';
+  if (course.match_reason) c.matchReason = String(course.match_reason);
+  if (courseUrl && courseStatus !== 'dead' && !c.courseUrl) c.courseUrl = courseUrl;
+  S.research[c.id] = {
+    status: 'done', course: { name: String(course.name || c.course || ''), url: courseStatus === 'dead' ? '' : courseUrl, price: String(course.price || 'Not shown'), price_note: String(course.price_note || ''), duration: String(course.duration || ''), mode: String(course.mode || ''), features: arr(course.features).map(f => tx(f, 'text')).filter(Boolean) },
+    positioning: String(d.positioning || ''), ads: liveAds, formats: [...fm],
+    ad_usps: arr(d.ad_usps).map(u => ({ usp: tx(u, 'usp', 'text'), where: u.where_seen || '' })).filter(u => u.usp),
+    creative_types: arr(d.creative_types), hooks: arr(d.hooks).map(h => tx(h, 'hook', 'text')), offers_ctas: arr(d.offers_ctas).map(h => tx(h, 'offer', 'text')),
+    student_expectations: arr(d.student_expectations).map(h => tx(h, 'text')), pain_points: arr(d.pain_points).map(h => tx(h, 'text')),
+    confidence_note: String(d.confidence_note || ''), sources: srcs.slice(0, 8), evidence: (notes || imgs.length) ? 'yours' : 'research'
+  };
+}
+
+function applyMatchFilter() {
+  if (S.biz.match === 'close') { S.matchNote = ''; return; }
+  const done = selComps().filter(c => S.research[c.id]?.status === 'done');
+  const exact = done.filter(c => c.match === 'exact');
+  if (!exact.length) { S.matchNote = done.length ? 'No competitor was confirmed to sell the exact same course, so close matches are shown. Check each course page before relying on the comparison.' : ''; return; }
+  const out = done.filter(c => c.match !== 'exact' && !c.forced);
+  out.forEach(c => { c.selected = false; });
+  S.matchNote = out.length ? `${out.length} competitor${out.length > 1 ? 's' : ''} did not sell the exact same course and ${out.length > 1 ? 'were' : 'was'} left out: ${out.map(c => c.name).join(', ')}. Tick any of them in the list below to include.` : '';
+}
+async function researchAll(list) {
+  list = list || selComps().filter(c => S.research[c.id]?.status !== 'done');
+  let done = 0; const errs = [];
+  scanSet('Researching competitors', 0, list.length);
+  await pool(list, 3, async c => {
+    try { await researchComp(c); } catch (e) { if (e.cancelled) throw e; S.research[c.id] = { status: 'error', error: e.message }; errs.push(c.name + ': ' + e.message); }
+    done++; scanSet('Researching competitors', done, list.length); saveSoon();
+  });
+  applyMatchFilter();
+  if (errs.length && errs.length === list.length) throw new Error(errs[0]);
+  if (errs.length) UI.error = `${errs.length} competitor${errs.length > 1 ? 's' : ''} could not be researched (use Retry on the row). ${errs[0]}`;
+}
+
+async function buildComparison() {
+  const done = selComps().filter(c => S.research[c.id]?.status === 'done');
+  if (!done.length) throw new Error('Research at least one competitor first.');
+  const pack = done.map(c => { const r = S.research[c.id]; return { name: c.name, type: c.type, match: c.match, course: r.course.name, price: r.course.price + (r.course.price_note ? ' (' + r.course.price_note + ')' : ''), duration: r.course.duration, mode: r.course.mode, features: r.course.features, positioning: r.positioning, ad_usps: r.ad_usps.map(u => u.usp), ad_formats: r.formats, hooks: r.hooks.slice(0, 4), offers: r.offers_ctas.slice(0, 4) }; });
+  const names = done.map(c => c.name);
+  const prompt = `${bizContext()}
+
+COMPETITOR FINDINGS (JSON):
+${JSON.stringify(pack)}
+
+These competitors sell the same or a near-identical course, so compare like for like: price, EMI options, live classes, mentoring, projects, placement support, validity and certificate. Compare our offer against these competitors. Be honest: mark a dimension "worse" where a competitor is clearly ahead, and "unknown" where the data does not show it. Do not invent facts about us beyond what is given above.
+Return JSON: {"summary":"2-3 sentence takeaway on where we stand","dimensions":[{"name":"","us":"our value","values":{${names.map(n => JSON.stringify(n) + ':"value"').join(',')}},"verdict":"better or similar or worse or unknown","note":"one line"}],"we_stand_out":[{"point":"","why":""}],"they_beat_us":[{"point":"","why":""}],"whitespace":["angles or formats no competitor is using that we could own"]}
+Use 7 to 9 dimensions such as: Price and offer, Duration and format, Credential or brand, Core USPs in ads, Outcomes or placement support, Mentorship and support, Main ad angle, Ad format mix. Use exactly the competitor names given as keys in values.`;
+  const { data } = await askJSON({ parts: [{ text: prompt }] });
+  S.comparison = { summary: data.summary || '', dimensions: arr(data.dimensions), we_stand_out: arr(data.we_stand_out), they_beat_us: arr(data.they_beat_us), whitespace: arr(data.whitespace), names };
+}
+
+function allAds() {
+  const out = []; let n = 0;
+  selComps().forEach(c => arr(S.research[c.id]?.ads).forEach(a => { if (a.url) out.push({ ...a, ref: 'R' + (++n), comp: c.name, cid: c.id }); }));
+  return out;
+}
+
+async function buildIdeas() {
+  const done = selComps().filter(c => S.research[c.id]?.status === 'done');
+  if (!done.length) throw new Error('Research at least one competitor first.');
+  const refs = allAds();
+  const pack = done.map(c => { const r = S.research[c.id]; return { competitor: c.name, usps: r.ad_usps.map(u => u.usp), creative_types: r.creative_types.map(u => `${tx(u, 'type')}: ${u.description || ''}`), hooks: r.hooks.slice(0, 5), offers: r.offers_ctas.slice(0, 5), pain_points: r.pain_points.slice(0, 5) }; });
+  const prompt = `${bizContext()}
+
+COMPETITOR FINDINGS (JSON):
+${JSON.stringify(pack)}
+
+OUR COMPARISON: ${JSON.stringify({ summary: S.comparison?.summary, we_stand_out: arr(S.comparison?.we_stand_out), whitespace: arr(S.comparison?.whitespace) })}
+
+REFERENCE ADS you may cite by id: ${refs.length ? refs.map(r => `${r.ref} = ${r.comp}, ${r.format} on ${r.platform}: ${r.what}`).join(' | ') : '(none available)'}
+
+Write 12 distinct, concrete ad ideas for our course, based on what competitors do and the gaps they leave. Mix categories. For each idea, cite the reference ads that inspired it using ref_ids (only ids listed above; empty array if none).
+Also write image_prompt: a complete, ready-to-paste prompt for ChatGPT image generation that produces a static ad or banner for that idea. It must be self-contained and include: the ad size (for example 1080x1350 for an Instagram or Facebook feed ad, 4:5), the scene and main subject (Indian learners where relevant), composition and layout, style and colour palette (use "[our brand colours]" if unknown), and the exact on-screen text to render (headline, supporting line, price or offer badge only if our price is known, and call-to-action button text) written in ${S.biz.lang}. Tell it to render the text exactly as written, keep text large and legible, leave safe margins, and not add logos or other text. For video ideas, write the prompt for the key frame or thumbnail.
+Return JSON: {"ideas":[{"title":"","category":"USP or Format or Hook or Offer or Proof or Emotion","summary":"","why_it_works":"","who_uses":["competitor names"],"fit_for_us":"","difficulty":"easy or medium or hard","format":"video or static or carousel","ref_ids":["R1"],"image_prompt":""}]}`;
+  const { data } = await askJSON({ parts: [{ text: prompt }] });
+  const cats = ['USP', 'Format', 'Hook', 'Offer', 'Proof', 'Emotion'];
+  S.ideas = arr(data.ideas).map((i, n) => ({ ...i, id: 'i' + (n + 1), category: cats.includes(i.category) ? i.category : 'USP', refs: arr(i.ref_ids).map(id => refs.find(r => r.ref === id)).filter(Boolean).map(r => ({ comp: r.comp, format: r.format, platform: r.platform, url: r.url, status: r.status })) }));
+  S.selected = []; S.concepts = {};
+}
+
+async function runScan(fresh = true) {
+  const b = S.biz;
+  if (!b.name.trim() || !(b.course.trim() || b.desc.trim() || b.url.trim())) return fail(new Error('Add your business name and the course name or details.'));
+  UI.error = ''; STOPPED = false;
+  try {
+    if (fresh) { S.profile = null; S.competitors = []; S.research = {}; S.comparison = null; S.ideas = []; S.selected = []; S.concepts = {}; S.scanned = false; }
+    if (!S.profile) { scanSet('Reading your course'); await buildProfile(); }
+    if (!S.competitors.length) { scanSet('Finding competitors'); await findComps(false); }
+    if (!S.competitors.length) throw new Error('No competitors were found. Add a few course details and try again.');
+    go(2);
+    await researchAll();
+    if (!S.comparison) { scanSet('Comparing you with competitors'); await buildComparison(); render(); }
+    if (!S.ideas.length) { scanSet('Writing ideas and image prompts'); await buildIdeas(); }
+    S.scanned = true; idle(); render(); saveSoon();
+  } catch (e) { saveSoon(); fail(e); }
+}
+async function runStage(fn, label) {
+  UI.error = ''; STOPPED = false;
+  try { scanSet(label); await fn(); S.scanned = true; idle(); render(); saveSoon(); } catch (e) { fail(e); }
+}
+
+async function genConcepts() {
+  const ideas = S.ideas.filter(i => S.selected.includes(i.id)); if (!ideas.length) return;
+  UI.error = ''; STOPPED = false; let done = 0; const errs = [];
+  busy('Writing creatives', `0 of ${ideas.length} ideas done`, 0, ideas.length);
+  const n = Number(S.opts.count) || 6;
+  try {
+    await pool(ideas, 2, async idea => {
+      const prompt = `${bizContext()}
+
+IDEA TO EXECUTE: ${idea.title}
+${idea.summary}
+Why it works: ${idea.why_it_works || ''}
+Competitors doing something similar: ${arr(idea.who_uses).join(', ') || 'n/a'}
+
+Write exactly ${n} different creative concepts for this idea, usable on Meta and YouTube. At least 3 must be short videos or reels (15 to 45 seconds); the rest can be static, carousel or UGC-style. Each must be specific enough to brief an editor or designer today. Copy language: ${S.biz.lang}${S.biz.lang === 'Hinglish' ? ' (Hindi written in Roman script, natural and conversational)' : ''}. Do not make claims about results, rankings or guarantees that the business has not stated.
+For static or carousel formats, use the script array to list frames, with "time" like "Frame 1".
+For every concept also write image_prompt: a complete ready-to-paste ChatGPT image-generation prompt for its key visual (static ad, banner, or the key frame or thumbnail for a video), including size (for example 1080x1350, 4:5), scene, composition, style and colours ("[our brand colours]" if unknown), and the exact on-screen text to render in ${S.biz.lang}, with an instruction to render text exactly as written, large and legible, with no extra text or logos.
+Return JSON: {"concepts":[{"title":"","format":"Reel 30s or Static or Carousel or UGC testimonial or Talking head","platform":"","hook":"the first 3 seconds or the headline image idea","script":[{"time":"0-3s","visual":"","voiceover":"","on_screen_text":""}],"headline":"","primary_text":"","cta":"","why_it_works":"","test_tip":"what to A/B test","image_prompt":""}]}`;
+      try {
+        const { data } = await askJSON({ parts: [{ text: prompt }] });
+        S.concepts[idea.id] = arr(Array.isArray(data) ? data : data.concepts);
+      } catch (e) { if (e.cancelled) throw e; errs.push(e.message); }
+      done++; busy('Writing creatives', `${done} of ${ideas.length} ideas done`, done, ideas.length);
+    });
+  } catch (e) { return fail(e); }
+  idle(); render(); saveSoon();
+  if (errs.length) fail(new Error(errs[0]));
+}
+
+/* ================= images (extra evidence) ================= */
+function compress(file) {
+  return new Promise((res, rej) => {
+    const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => {
+      const m = 1280, k = Math.min(1, m / Math.max(img.width, img.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      const url = cv.toDataURL('image/jpeg', 0.72); URL.revokeObjectURL(u);
+      res({ name: file.name, mime: 'image/jpeg', data: url.split(',')[1], url });
+    };
+    img.onerror = () => rej(new Error('Could not read that image.'));
+    img.src = u;
+  });
+}
+async function addImages(id, files) {
+  const list = IMAGES[id] = IMAGES[id] || [];
+  for (const f of [...files].filter(f => f.type.startsWith('image/'))) {
+    if (list.length >= 6) { toast('Up to 6 screenshots per competitor'); break; }
+    try { list.push(await compress(f)); } catch (e) { toast(e.message); }
+  }
+  UI.open[id] = true; render();
+}
+
+/* ================= views ================= */
+function renderRail() {
+  const steps = [['Your course', 'Details to scan'], ['Market report', 'Tables, ads, comparison'], ['Ideas and prompts', 'Creatives and GPT prompts']];
+  const researched = selComps().filter(c => S.research[c.id]?.status === 'done').length;
+  $('#rail').innerHTML = `
+    <div class="brand">Market Intel Studio<small>Competitors, ads and creative ideas</small></div>
+    <ol class="steps" style="list-style:none">
+      ${steps.map((s, i) => {
+        const n = i + 1, cls = n === S.step ? 'cur' : n <= S.maxStep ? 'done can' : '';
+        const can = n <= S.maxStep && n !== S.step;
+        return `<li><button class="step ${cls}" ${can ? `data-act="goto" data-n="${n}"` : 'tabindex="-1"'} ${n === S.step ? 'aria-current="step"' : ''}>
+          <span class="dot">${n < S.step || (n <= S.maxStep && n !== S.step) ? '✓' : n}</span><span><b>${s[0]}</b><span class="d">${s[1]}</span></span></button></li>`;
+      }).join('')}
+    </ol>
+    <div class="tally">
+      <div><strong>${selComps().length}</strong><span>competitors</span></div>
+      <div><strong>${researched}</strong><span>researched</span></div>
+      <div><strong>${allAds().length}</strong><span>ad links</span></div>
+      <div><strong>${S.ideas.length}</strong><span>ideas</span></div>
+    </div>
+    <div class="railbtns"><button data-act="newProj">New</button><button data-act="openHistory">History</button><button data-act="openSettings">Settings</button></div>`;
+}
+
+function renderMain() {
+  const needKey = !settings.ownKey && !settings.code;
+  let h = '';
+  if (UI.error) h += `<div class="err" role="alert"><span>${esc(UI.error)}</span><button data-act="dismissErr" aria-label="Dismiss">×</button></div>`;
+  if (needKey) h += `<div class="notice">Add your access code (or your own Gemini key) to start. <button data-act="openSettings" style="color:var(--accent);font-weight:600;text-decoration:underline;background:none;border:0;cursor:pointer;padding:0">Open settings</button></div>`;
+  h += [viewInput, viewReport, viewIdeas][S.step - 1]();
+  $('#main').innerHTML = h;
+}
+
+function viewInput() {
+  const b = S.biz;
+  return `
+  <h1>What are you selling?</h1>
+  <p class="lede">Enter your course details. We will find competitors with similar courses, pull their offer prices, ad USPs, ad types and ad links, compare you against them, and then write ideas with ready-to-paste GPT image prompts.</p>
+  <div class="panel">
+    <div class="grid2">
+      <label>Business or brand name<input data-bind="biz.name" value="${esc(b.name)}" placeholder="e.g. PW Medharthi"></label>
+      <label>Website<input data-bind="biz.url" value="${esc(b.url)}" placeholder="https://yourbrand.com"></label>
+    </div>
+    <div class="grid2">
+      <label>Course or program name<input data-bind="biz.course" value="${esc(b.course)}" placeholder="e.g. Certification in Data Science"></label>
+      <label>Institute or certifying partner (recommended)<input data-bind="biz.partner" value="${esc(b.partner)}" placeholder="e.g. IIT Roorkee, IIM Calcutta"></label>
+    </div>
+    <label>Course details<textarea data-bind="biz.desc" rows="5" placeholder="What is covered, duration, mode, who it is for, what makes it different, placement or outcomes">${esc(b.desc)}</textarea></label>
+    <div class="grid3">
+      <label>Your price (optional)<input data-bind="biz.price" value="${esc(b.price)}" placeholder="e.g. ₹49,999 or EMI from ₹3,000"></label>
+      <label>Country for ad search<select data-bind="biz.country">${opt('IN', 'India', b.country)}${opt('US', 'United States', b.country)}${opt('GB', 'United Kingdom', b.country)}${opt('AE', 'UAE', b.country)}${opt('SG', 'Singapore', b.country)}${opt('AU', 'Australia', b.country)}${opt('CA', 'Canada', b.country)}${opt('ALL', 'All countries', b.country)}</select></label>
+      <label>Language for ad copy and prompts<select data-bind="biz.lang">${opt('English', 'English', b.lang)}${opt('Hinglish', 'Hinglish', b.lang)}${opt('Hindi', 'Hindi', b.lang)}</select></label>
+    </div>
+    <div class="grid2">
+      <label>Who is it for? (optional)<input data-bind="biz.audience" value="${esc(b.audience)}" placeholder="e.g. working professionals, final-year students"></label>
+      <label>Which competitors to find<select data-bind="biz.match">${opt('exact', 'Exact same course only (recommended)', b.match)}${opt('close', 'Exact and very close courses', b.match)}</select></label>
+    </div>
+    <div class="actions"><button class="btn primary" data-act="runScan" ${UI.busy ? 'disabled' : ''}>Run market scan</button>
+      ${S.scanned || S.competitors.length ? '<button class="btn" data-act="goto" data-n="2">View last report</button>' : ''}
+      <span class="hint">A full scan takes about 5 to 10 minutes. You will land on the report as soon as competitors are found, and the table fills in as research finishes.</span></div>
+  </div>`;
+}
+
+/* ---- report ---- */
+function adLinksHTML(c, max = 3) {
+  const r = S.research[c.id]; const direct = arr(r?.ads).filter(a => a.url).slice(0, max);
+  const out = direct.map(a => `<a class="alink ${a.status === 'ok' ? '' : 'un'}" href="${esc(a.url)}" target="_blank" rel="noopener" title="${a.status === 'ok' ? 'Link checked and live' : 'Platform page, open to confirm'}">${a.format === 'video' ? '▶' : '▣'} ${esc(a.platform || host(a.url))} ${esc(fmtWord(a.format).toLowerCase())} ↗</a>`).join('');
+  return out + `<a class="alink search" href="${esc(metaLink(c))}" target="_blank" rel="noopener" title="Opens their ads in Meta Ad Library">🔎 Search their ads ↗</a>`;
+}
+function fmtPills(r) {
+  const f = arr(r?.formats);
+  return f.length ? f.map(x => `<span class="pill ${x}" style="margin:0 6px 4px 0">${fmtWord(x)}</span>`).join('') : '<span class="pill none" style="margin:0">Not confirmed</span>';
+}
+
+function summaryTable() {
+  const comps = selComps();
+  if (!comps.length) return '<div class="empty">No competitors yet.</div>';
+  return `<div class="scroll"><table class="tbl"><thead><tr><th>Competitor</th><th>Their version of this course and offer price</th><th>USPs in their ads</th><th>Ad type</th><th>Ad links</th></tr></thead><tbody>
+  ${comps.map(c => {
+    const r = S.research[c.id];
+    const nameCell = `<div class="cname"><a class="lnk" href="#" data-act="jump" data-id="${c.id}">${esc(c.name)}</a><span class="pill ${esc(c.type)}">${esc(c.type)}</span></div>${safeUrl(c.website) ? `<div class="sub"><a class="lnk" href="${esc(safeUrl(c.website))}" target="_blank" rel="noopener">${esc(host(c.website))}</a></div>` : ''}<div style="margin-top:5px">${matchPill(c)}</div>${c.matchReason ? `<div class="sub">${esc(c.matchReason)}</div>` : ''}`;
+    if (!r || r.status === 'running' || r.status === undefined) return `<tr><td>${nameCell}</td><td colspan="4" style="color:var(--muted)">${r?.status === 'running' ? 'Researching…' : 'Waiting for research…'}</td></tr>`;
+    if (r.status === 'error') return `<tr><td>${nameCell}</td><td colspan="3" style="color:#8f1d33">${esc(r.error || 'Research failed')}</td><td><button class="btn sm" data-act="retryComp" data-id="${c.id}">Retry</button></td></tr>`;
+    const top = r.ad_usps.slice(0, 4);
+    return `<tr><td>${nameCell}</td>
+      <td><div class="sub" style="margin:0 0 3px">${esc(r.course.name || c.course || 'Course not identified')}</div><div class="price">${esc(r.course.price)}</div>${r.course.price_note ? `<div class="sub">${esc(r.course.price_note)}</div>` : ''}${r.course.url ? `<a class="lnk" style="font-size:12.5px" href="${esc(r.course.url)}" target="_blank" rel="noopener">Course page ↗</a>` : ''}</td>
+      <td>${top.length ? `<ul>${top.map(u => `<li>${esc(u.usp)}</li>`).join('')}</ul>` : '<span class="sub">None confirmed</span>'}</td>
+      <td>${fmtPills(r)}</td>
+      <td>${adLinksHTML(c, 3)}</td></tr>`;
+  }).join('')}
+  </tbody></table></div>
+  <div class="legend"><span><span class="alink" style="margin:0;padding:2px 9px">Green</span> link to a specific ad, video or post found in research and checked live</span><span><span class="alink un" style="margin:0;padding:2px 9px">Grey</span> found in research, on a platform that cannot be checked automatically. Open to confirm</span><span><span class="alink search" style="margin:0;padding:2px 9px">Amber</span> search in Meta Ad Library, not a single ad</span></div>`;
+}
+
+function comparisonHTML() {
+  const cm = S.comparison;
+  if (!cm) return `<div class="panel"><div class="empty">The comparison is built once research finishes.${S.competitors.length && !UI.busy ? '<br><br><button class="btn primary" data-act="stageComparison">Build comparison</button>' : ''}</div></div>`;
+  const names = cm.names.filter(n => selComps().some(c => c.name === n));
+  const head = `<tr><th>Dimension</th><th class="us">${esc(S.biz.name || 'You')}</th>${names.map(n => `<th>${esc(n)}</th>`).join('')}</tr>`;
+  const rows = cm.dimensions.map(d => {
+    const v = ['better', 'similar', 'worse', 'unknown'].includes(d.verdict) ? d.verdict : 'unknown';
+    const vals = d.values || {};
+    return `<tr><td>${esc(d.name)}</td><td class="us"><span class="vdot v-${v}">${v === 'better' ? 'We lead' : v === 'worse' ? 'They lead' : v === 'similar' ? 'Similar' : 'Unclear'}</span><br>${esc(d.us)}${d.note ? `<div class="sub" style="color:var(--muted);font-size:12px;margin-top:4px">${esc(d.note)}</div>` : ''}</td>${names.map(n => `<td>${esc(vals[n] ?? '—')}</td>`).join('')}</tr>`;
+  }).join('');
+  const li = (items, k1, k2) => arr(items).length ? `<ul>${arr(items).map(x => `<li>${typeof x === 'string' ? esc(x) : `<b>${esc(x[k1] || '')}</b>${x[k2] ? ' ' + esc(x[k2]) : ''}`}</li>`).join('')}</ul>` : '<span class="hint">Nothing clear from the data.</span>';
+  return `${cm.summary ? `<div class="notice" style="margin-bottom:14px">${esc(cm.summary)}</div>` : ''}
+  <div class="scroll"><table class="tbl cmp"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+  <div class="twocol">
+    <div><h3>Where we stand out</h3>${li(cm.we_stand_out, 'point', 'why')}</div>
+    <div><h3>Where they are ahead</h3>${li(cm.they_beat_us, 'point', 'why')}</div>
+    <div><h3>Open space nobody is using</h3>${li(cm.whitespace)}</div>
+  </div>`;
+}
+
+function detailCard(c) {
+  const r = S.research[c.id], open = UI.open[c.id], a = S.ads[c.id] || { notes: '' }, imgs = IMAGES[c.id] || [];
+  const li = (items, f) => arr(items).length ? `<ul>${arr(items).map(f).join('')}</ul>` : '<span class="hint">Nothing found.</span>';
+  let body = '';
+  if (open) {
+    if (!r || r.status !== 'done') body = `<div class="body"><p class="hint" style="margin-top:14px">${r?.status === 'error' ? esc(r.error) : 'Research has not finished for this competitor.'}</p><div class="actions"><button class="btn dark sm" data-act="retryComp" data-id="${c.id}">Research this competitor</button></div></div>`;
+    else body = `<div class="body">
+      <div class="res">
+        <section class="wide"><span class="pill ${r.evidence === 'yours' ? 'ok' : 'warn'}" style="margin:0">${r.evidence === 'yours' ? 'Includes evidence you added' : 'Based on web research'}</span>
+          ${r.positioning ? `<p style="margin:8px 0 0"><b>Positioning:</b> ${esc(r.positioning)}</p>` : ''}
+          ${r.confidence_note ? `<p class="hint">${esc(r.confidence_note)}</p>` : ''}</section>
+        <section><h4>Course and offer</h4><p style="margin:0 0 6px"><b>${esc(r.course.name || 'Not identified')}</b></p>
+          <p style="margin:0 0 6px"><span class="price" style="font:700 17px var(--display)">${esc(r.course.price)}</span>${r.course.price_note ? ` <span class="hint">${esc(r.course.price_note)}</span>` : ''}</p>
+          ${r.course.duration || r.course.mode ? `<p class="hint" style="margin:0 0 6px">${esc([r.course.duration, r.course.mode].filter(Boolean).join(' · '))}</p>` : ''}
+          ${li(r.course.features, f => `<li>${esc(f)}</li>`)}
+          ${r.course.url ? `<p style="margin:8px 0 0"><a class="lnk" href="${esc(r.course.url)}" target="_blank" rel="noopener">Open course page ↗</a></p>` : ''}</section>
+        <section><h4>USPs in their ads</h4>${li(r.ad_usps, u => `<li>${esc(u.usp)}${u.where ? `<small>${esc(u.where)}</small>` : ''}</li>`)}</section>
+        <section class="wide"><h4>Ads referenced (${arr(r.ads).length})</h4>
+          ${arr(r.ads).length ? arr(r.ads).map(x => `<div class="adrow"><div>${x.format !== 'unknown' ? `<span class="pill ${x.format}" style="margin:0">${fmtWord(x.format)}</span>` : '<span class="pill none" style="margin:0">Ad</span>'}</div>
+            <div><b>${esc(x.platform || 'Ad')}</b>${x.what ? ` · ${esc(x.what)}` : ''}${arr(x.usps).length ? `<div class="hint">USPs: ${arr(x.usps).map(esc).join(' · ')}</div>` : ''}
+            <div style="margin-top:5px">${x.url ? `<a class="alink ${x.status === 'ok' ? '' : 'un'}" href="${esc(x.url)}" target="_blank" rel="noopener">Open ad ↗</a><span class="hint" style="margin-left:4px">${x.status === 'ok' ? 'Checked live' : 'Open to confirm'}</span>` : '<span class="hint">No link found for this one.</span>'}</div></div></div>`).join('') : '<span class="hint">No specific ads were found. Use the search links below, then paste what you find in “Add your own evidence”.</span>'}
+          <div style="margin-top:10px"><a class="alink search" href="${esc(metaLink(c))}" target="_blank" rel="noopener">🔎 Meta Ad Library ↗</a><a class="alink search" href="${esc(gLink(c))}" target="_blank" rel="noopener">🔎 Google Ads Transparency ↗</a><a class="alink search" href="${esc(ytLink(c))}" target="_blank" rel="noopener">🔎 YouTube ↗</a></div></section>
+        <section><h4>Creative types</h4>${li(r.creative_types, u => `<li><b>${esc(tx(u, 'type', 'name'))}</b>${u.description ? `<small>${esc(u.description)}</small>` : ''}</li>`)}</section>
+        <section><h4>Hooks and angles</h4>${li(r.hooks, h => `<li>${esc(h)}</li>`)}</section>
+        <section><h4>Offers and CTAs</h4>${li(r.offers_ctas, h => `<li>${esc(h)}</li>`)}</section>
+        ${S.opts.pain ? `<section><h4>What students expect</h4>${li(r.student_expectations, h => `<li>${esc(h)}</li>`)}</section><section class="wide"><h4>Pain points they address</h4>${li(r.pain_points, h => `<li>${esc(h)}</li>`)}</section>` : ''}
+        ${arr(r.sources).length ? `<section class="wide"><h4>Sources used</h4><div>${r.sources.map(s => `<a class="chip" style="margin:0 6px 6px 0;font-weight:500" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title || host(s.url) || 'source')}</a>`).join('')}</div></section>` : ''}
+      </div>
+      <h4 style="margin:20px 0 6px">Add your own evidence</h4>
+      <label style="margin-bottom:10px">Ad copy or links you found<textarea data-bind="ads.${c.id}.notes" rows="3" placeholder="Paste ad text, headlines, offers or ad links, one per line">${esc(a.notes || '')}</textarea></label>
+      <div class="drop" tabindex="0" data-drop="${c.id}" data-act="pickImg" data-id="${c.id}">Drop screenshots here, paste with Ctrl+V, or click to choose (up to 6)</div>
+      <input type="file" accept="image/*" multiple hidden id="file-${c.id}" data-file="${c.id}">
+      ${imgs.length ? `<div class="thumbs">${imgs.map((im, i) => `<div class="thumb"><img src="${im.url}" alt="Screenshot ${i + 1}"><button data-act="removeImg" data-id="${c.id}" data-i="${i}" aria-label="Remove screenshot">×</button></div>`).join('')}</div>` : ''}
+      <div class="actions" style="margin-top:12px"><button class="btn dark sm" data-act="retryComp" data-id="${c.id}" ${UI.busy ? 'disabled' : ''}>Re-research with my evidence</button></div>
+    </div>`;
+  }
+  const state = !r ? 'Waiting' : r.status === 'running' ? 'Researching…' : r.status === 'error' ? 'Failed' : 'Researched';
+  return `<div class="acc ${UI.flash === c.id ? 'flash' : ''}" id="comp-${c.id}"><header data-act="toggleAcc" data-id="${c.id}"><div><b>${esc(c.name)}</b><span class="pill ${r?.status === 'done' ? 'ok' : ''}">${state}</span></div><span aria-hidden="true">${open ? '−' : '+'}</span></header>${body}</div>`;
+}
+
+function adsTable() {
+  const ads = allAds();
+  if (!ads.length) return '<div class="panel"><div class="empty">No specific ad links were found yet. Open a competitor’s details to use the Meta, Google and YouTube search links, then paste what you find so it appears here.</div></div>';
+  return `<div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Competitor</th><th>Platform</th><th>Type</th><th>What it shows</th><th>USPs</th><th>Link</th></tr></thead><tbody>
+  ${ads.map(a => `<tr><td>${a.ref}</td><td><a class="lnk" href="#" data-act="jump" data-id="${a.cid}">${esc(a.comp)}</a></td><td>${esc(a.platform)}</td><td><span class="pill ${a.format}" style="margin:0">${fmtWord(a.format)}</span></td><td>${esc(a.what)}${a.mine ? ' <span class="pill ok">added by you</span>' : ''}</td><td>${arr(a.usps).map(esc).join(' · ')}</td><td><a class="alink ${a.status === 'ok' ? '' : 'un'}" href="${esc(a.url)}" target="_blank" rel="noopener">Open ↗</a></td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="actions" style="margin-top:12px"><button class="btn sm" data-act="copyLinks">Copy all links</button></div>`;
+}
+
+function viewReport() {
+  const comps = selComps(), sc = UI.scan;
+  const stages = [['Course', !!S.profile], ['Competitors', S.competitors.length > 0], ['Research', comps.length > 0 && comps.every(c => S.research[c.id]?.status === 'done')], ['Comparison', !!S.comparison], ['Ideas', S.ideas.length > 0]];
+  const running = sc ? (sc.label.includes('Research') ? 'Research' : sc.label.includes('Compar') ? 'Comparison' : sc.label.includes('ideas') ? 'Ideas' : sc.label.includes('competitors') ? 'Competitors' : 'Course') : '';
+  return `
+  <h1>Market report</h1>
+  <p class="lede">${esc(S.biz.course || S.biz.name)}${S.profile?.price ? ' · your price ' + esc(S.profile.price) : ''}. How similar courses are being sold and advertised, and where you stand.</p>
+  ${S.matchNote ? `<div class="notice" role="status">${esc(S.matchNote)}</div>` : ''}
+  <div class="scanstrip">${stages.map(([n, d]) => `<span class="${d ? 'done' : running === n ? 'run' : ''}">${d ? '✓ ' : running === n ? '… ' : ''}${n}${running === n && sc?.total ? ` ${sc.done}/${sc.total}` : ''}</span>`).join('')}</div>
+  <div class="panel" style="margin-bottom:18px">
+    <div class="mgr"><b style="font-size:13.5px;margin-right:4px">Competitors</b>
+      ${S.competitors.map(c => `<span class="tag" style="${c.selected ? '' : 'opacity:.55'}"><label style="margin:0;display:inline-flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" data-act="toggleComp" data-id="${c.id}" ${c.selected ? 'checked' : ''} aria-label="Include ${esc(c.name)}"> ${esc(c.name)}${c.match ? ` <span class="pill ${c.match === 'exact' ? 'ok' : c.match === 'close' ? 'warn' : 'none'}" style="margin-left:2px">${c.match === 'exact' ? 'Exact' : c.match === 'close' ? 'Close' : c.match === 'related' ? 'Related' : 'Different'}</span>` : ''}</label><button class="icon" data-act="removeComp" data-id="${c.id}" aria-label="Remove ${esc(c.name)}">×</button></span>`).join('')}
+    </div>
+    <div class="addrow"><label>Add a competitor<input data-bind="t.newName" value="${esc(T.newName)}" placeholder="Name, e.g. upGrad"></label><label>Website (optional)<input data-bind="t.newWeb" value="${esc(T.newWeb)}" placeholder="upgrad.com"></label><label>Link to their exact course page (best for accuracy)<input data-bind="t.newCourse" value="${esc(T.newCourse)}" placeholder="https://..."></label><button class="btn" data-act="addComp" style="margin-bottom:0">Add</button></div>
+    <div class="actions" style="margin-top:14px">
+      <button class="btn primary sm" data-act="researchNew" ${UI.busy ? 'disabled' : ''}>Research new competitors</button>
+      <button class="btn sm" data-act="onlyExact">Exact matches only</button><button class="btn sm" data-act="withClose">Include close matches</button>
+      <button class="btn sm" data-act="moreComps" ${UI.busy ? 'disabled' : ''}>Find more competitors</button>
+      <button class="btn sm" data-act="stageComparison" ${UI.busy ? 'disabled' : ''}>Rebuild comparison</button>
+      <button class="btn sm" data-act="stageIdeas" ${UI.busy ? 'disabled' : ''}>Rebuild ideas</button>
+      <button class="btn sm" data-act="goto" data-n="1">Edit course details</button>
+      <button class="btn sm" data-act="exportMd">Download report (.md)</button><button class="btn sm" data-act="print">Print or save as PDF</button>
+    </div>
+  </div>
+  <nav class="subnav" aria-label="Sections"><button data-act="sec" data-sec="sec-summary">Summary</button><button data-act="sec" data-sec="sec-compare">Comparison</button><button data-act="sec" data-sec="sec-details">Details</button><button data-act="sec" data-sec="sec-ads">Referenced ads</button><button data-act="goto" data-n="3">Ideas and prompts →</button></nav>
+  <section class="sec" id="sec-summary"><h2>1. What competitors are doing</h2><p class="hint">Similar courses, their offer price, the USPs and type of their ads, and links to the ads.</p>${summaryTable()}</section>
+  <section class="sec" id="sec-compare"><h2>2. How you stand out</h2><p class="hint">You against each competitor, dimension by dimension.</p>${comparisonHTML()}</section>
+  <section class="sec" id="sec-details"><h2>3. Good to know, in detail</h2><p class="hint">Jump straight to any competitor.</p>
+    <div class="chips">${comps.map(c => `<button class="chip" data-act="jump" data-id="${c.id}">${esc(c.name)}</button>`).join('')}</div>
+    <div class="opts"><label><input type="checkbox" data-bind="opts.pain" ${S.opts.pain ? 'checked' : ''}> Show student expectations and pain points</label></div>
+    ${comps.map(detailCard).join('')}</section>
+  <section class="sec" id="sec-ads"><h2>4. Referenced ads</h2><p class="hint">Every ad link found during research, in one place.</p>${adsTable()}</section>
+  ${S.ideas.length ? `<div class="actions" style="margin-top:30px"><button class="btn primary" data-act="goto" data-n="3">Continue to ideas and GPT prompts</button></div>` : ''}`;
+}
+
+/* ---- ideas ---- */
+function promptBox(key, text, label) {
+  if (!text) return '';
+  const open = UI.promptOpen[key];
+  return `<div class="pbox ${open ? 'open' : ''}"><div class="ph"><span>${esc(label)}</span><span style="display:flex;gap:6px"><button class="btn sm" data-act="togglePrompt" data-key="${esc(key)}">${open ? 'Collapse' : 'Show all'}</button><button class="btn sm cp" data-act="copyPrompt" data-key="${esc(key)}">Copy prompt</button><a class="btn sm" style="text-decoration:none;color:#fff" href="https://chatgpt.com/" target="_blank" rel="noopener">Open ChatGPT ↗</a></span></div><pre>${esc(text)}</pre></div>`;
+}
+function promptFor(key) {
+  const [kind, id, n] = key.split(':');
+  if (kind === 'idea') return S.ideas.find(i => i.id === id)?.image_prompt || '';
+  if (kind === 'concept') return arr(S.concepts[id])[+n]?.image_prompt || '';
+  return '';
+}
+function conceptText(c) {
+  return [`${c.title} (${c.format}${c.platform ? ', ' + c.platform : ''})`, `Hook: ${c.hook}`,
+    ...arr(c.script).map(s => `${s.time}: ${s.visual || ''} | VO: ${s.voiceover || ''} | Text: ${s.on_screen_text || ''}`),
+    `Headline: ${c.headline}`, `Primary text: ${c.primary_text}`, `CTA: ${c.cta}`, `Why it works: ${c.why_it_works}`, `Test: ${c.test_tip}`,
+    c.image_prompt ? `GPT image prompt: ${c.image_prompt}` : ''].filter(Boolean).join('\n');
+}
+
+function viewIdeas() {
+  const sel = S.ideas.filter(i => S.selected.includes(i.id));
+  const has = sel.some(i => arr(S.concepts[i.id]).length);
+  if (!S.ideas.length) return `<h1>Ideas and prompts</h1><p class="lede">Ideas are written from the market report.</p><div class="panel"><div class="empty">No ideas yet.<br><br><button class="btn primary" data-act="stageIdeas" ${UI.busy || !S.competitors.length ? 'disabled' : ''}>Write ideas now</button></div></div>`;
+  return `
+  <h1>Ideas and GPT prompts</h1>
+  <p class="lede">${S.ideas.length} ideas based on the report. Each has a ready-to-paste prompt for ChatGPT to make a banner or static image, and shows the competitor ads that inspired it. Tick the ones you want turned into full creative concepts.</p>
+  ${S.ideas.map(i => {
+    const on = S.selected.includes(i.id);
+    return `<div class="idea cat-${esc(i.category)} ${on ? 'sel' : ''}">
+      <input type="checkbox" data-act="toggleIdea" data-id="${i.id}" ${on ? 'checked' : ''} aria-label="Select idea">
+      <div><span class="tag">${esc(i.category)}${i.format ? ' · ' + esc(i.format) : ''}${i.difficulty ? ' · ' + esc(i.difficulty) + ' to produce' : ''}</span>
+        <h3>${esc(i.title)}</h3><p>${esc(i.summary)}</p>
+        ${i.why_it_works ? `<p class="meta"><b>Why it works:</b> ${esc(i.why_it_works)}</p>` : ''}
+        ${i.fit_for_us ? `<p class="meta"><b>For you:</b> ${esc(i.fit_for_us)}</p>` : ''}
+        ${arr(i.who_uses).length ? `<p class="meta"><b>Seen with:</b> ${arr(i.who_uses).map(esc).join(', ')}</p>` : ''}
+        ${arr(i.refs).length ? `<div style="margin-top:6px"><span class="hint" style="margin-right:6px">Inspired by:</span>${i.refs.map(r => `<a class="alink ${r.status === 'ok' ? '' : 'un'}" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.comp)} · ${esc(fmtWord(r.format).toLowerCase())} ↗</a>`).join('')}</div>` : ''}
+        ${promptBox('idea:' + i.id, i.image_prompt, 'GPT image prompt')}
+      </div></div>`;
+  }).join('')}
+  ${has ? `<div class="exports" style="margin-top:28px"><button class="btn sm" data-act="exportMd">Download report (.md)</button><button class="btn sm" data-act="exportJson">Download data (.json)</button><button class="btn sm" data-act="print">Print or save as PDF</button></div>` : ''}
+  ${sel.map(i => arr(S.concepts[i.id]).length ? `
+    <div style="margin-top:30px"><h2>Creatives: ${esc(i.title)}</h2><p class="hint" style="font-size:14px;margin:0 0 12px">${esc(i.summary)}</p>
+    ${arr(S.concepts[i.id]).map((c, n) => `
+      <div class="concept"><div class="top"><div><span class="pill" style="margin:0">${esc(c.format)}</span>${c.platform ? `<span class="pill">${esc(c.platform)}</span>` : ''}<h3 style="margin-top:8px;font-size:18px">${esc(c.title)}</h3></div>
+        <button class="btn sm" data-act="copyConcept" data-id="${i.id}" data-i="${n}">Copy concept</button></div>
+        <div class="hook">${esc(c.hook)}</div>
+        ${arr(c.script).length ? `<div class="scroll"><table class="script"><thead><tr><th>When</th><th>Visual</th><th>Voiceover</th><th>On-screen text</th></tr></thead><tbody>${c.script.map(s => `<tr><td>${esc(s.time)}</td><td>${esc(s.visual)}</td><td>${esc(s.voiceover)}</td><td>${esc(s.on_screen_text)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+        <div class="copyblock"><b>Headline:</b> ${esc(c.headline)}<br><b>Primary text:</b> ${esc(c.primary_text)}<br><b>CTA:</b> ${esc(c.cta)}</div>
+        <p class="hint" style="margin:10px 0 0"><b>Why it works:</b> ${esc(c.why_it_works)}${c.test_tip ? `<br><b>Test it:</b> ${esc(c.test_tip)}` : ''}</p>
+        ${promptBox('concept:' + i.id + ':' + n, c.image_prompt, 'GPT image prompt for this concept')}
+      </div>`).join('')}</div>` : '').join('')}
+  <div class="sticky"><span><b>${S.selected.length}</b> selected</span>
+    <div class="actions" style="margin:0"><label style="margin:0;font-weight:500;display:flex;gap:8px;align-items:center">Concepts per idea <select data-bind="opts.count" style="padding:6px 8px;border:1px solid var(--line);border-radius:8px">${[5, 6, 8].map(n => opt(String(n), String(n), String(S.opts.count))).join('')}</select></label>
+    <button class="btn" data-act="selAll">Select all</button><button class="btn" data-act="selNone">Clear</button>
+    <button class="btn primary" data-act="genConcepts" ${S.selected.length && !UI.busy ? '' : 'disabled'}>${has ? 'Regenerate' : 'Build'} concepts for ${S.selected.length} idea${S.selected.length === 1 ? '' : 's'}</button></div></div>`;
+}
+
+function renderWorking() {
+  const w = $('#working'), b = UI.busy;
+  if (!b) { w.classList.remove('on'); w.innerHTML = ''; return; }
+  const pct = b.total ? Math.round(b.done / b.total * 100) : 12;
+  w.innerHTML = `<div class="wrow"><div><b>${esc(b.title)}</b>${b.detail ? `<small>${esc(b.detail)}</small>` : ''}</div><button class="btn sm" data-act="stop">Stop</button></div><div class="bar"><i style="width:${pct}%"></i></div>`;
+  w.classList.add('on');
+}
+function renderOverlay() {
+  const o = $('#overlay');
+  if (!UI.drawer) { o.classList.remove('on'); o.innerHTML = ''; return; }
+  if (UI.drawer === 'settings') {
+    o.innerHTML = `<div class="modal" role="dialog" aria-label="Settings"><h2>Settings</h2>
+      <label>Access code<input type="password" data-bind="set.code" value="${esc(settings.code || '')}" autocomplete="off" placeholder="The code you set in Vercel"><span class="hint">Used with the hosted version. Your Gemini key stays on the server. Link checking also needs this.</span></label>
+      <label>Or use your own Gemini key<input type="password" data-bind="set.ownKey" value="${esc(settings.ownKey || '')}" autocomplete="off" placeholder="AIza..."><span class="hint">Runs directly from this browser and overrides the access code. Ad links will not be checked for liveness in this mode.</span></label>
+      <label>Main model<input data-bind="set.model" value="${esc(settings.model || '')}" placeholder="${DEFAULT_MODEL}"><span class="hint">Leave blank for ${DEFAULT_MODEL}.</span></label>
+      <label>Research model (optional, faster)<input data-bind="set.researchModel" value="${esc(settings.researchModel || '')}" placeholder="Same as main model"><span class="hint">Used for the per-competitor web research, which is the slow part. Type a faster model name from Google AI Studio if scans time out.</span></label>
+      <div class="actions"><button class="btn primary" data-act="closeModal">Save and close</button></div></div>`;
+  } else {
+    let list = []; try { list = JSON.parse(lsGet('mis2_projects') || '[]'); } catch {}
+    o.innerHTML = `<div class="modal" role="dialog" aria-label="History"><h2>Saved research</h2>
+      ${list.length ? list.map(p => `<div class="proj"><div><b>${esc(p.biz?.course || p.biz?.name || 'Untitled')}</b><div class="hint">${new Date(p.updated || Date.now()).toLocaleString()} · ${arr(p.competitors).length} competitors · ${arr(p.ideas).length} ideas</div></div>
+        <div class="actions" style="margin:0"><button class="btn sm" data-act="loadProj" data-id="${p.id}">Open</button><button class="btn sm" data-act="delProj" data-id="${p.id}">Delete</button></div></div>`).join('') : '<div class="empty">Nothing saved yet. Research is saved on this device automatically.</div>'}
+      <div class="actions" style="margin-top:16px"><button class="btn" data-act="closeModal">Close</button></div></div>`;
+  }
+  o.classList.add('on');
+}
+function render() { renderRail(); renderMain(); renderWorking(); renderOverlay(); }
+
+/* ================= export ================= */
+function toMarkdown() {
+  const comps = selComps(); let m = `# Market intel report: ${S.biz.course || S.biz.name}\n\n${S.profile?.summary || ''}\n\n## 1. What competitors are doing\n\n| Competitor | Match | Their course | Offer price | USPs in ads | Ad type | Ad links |\n|---|---|---|---|---|---|---|\n`;
+  comps.forEach(c => { const r = S.research[c.id]; if (r?.status !== 'done') return; m += `| ${c.name} | ${c.match || '-'} | ${r.course.name} | ${r.course.price} | ${r.ad_usps.slice(0, 4).map(u => u.usp).join('; ')} | ${r.formats.map(fmtWord).join(', ') || 'Not confirmed'} | ${arr(r.ads).filter(a => a.url).map(a => `[${a.platform} ${a.format}](${a.url})`).join(', ') || `[Search](${metaLink(c)})`} |\n`; });
+  if (S.comparison) {
+    m += `\n## 2. How we stand out\n\n${S.comparison.summary}\n\n| Dimension | You | ${S.comparison.names.join(' | ')} |\n|---|---|${S.comparison.names.map(() => '---').join('|')}|\n`;
+    S.comparison.dimensions.forEach(d => { m += `| ${d.name} | ${d.us} (${d.verdict}) | ${S.comparison.names.map(n => (d.values || {})[n] ?? '-').join(' | ')} |\n`; });
+    m += `\n**Where we stand out:** ${arr(S.comparison.we_stand_out).map(x => x.point || x).join('; ')}\n\n**Where they are ahead:** ${arr(S.comparison.they_beat_us).map(x => x.point || x).join('; ')}\n\n**Open space:** ${arr(S.comparison.whitespace).map(x => tx(x, 'text')).join('; ')}\n`;
+  }
+  m += `\n## 3. Details\n`;
+  comps.forEach(c => { const r = S.research[c.id]; if (r?.status !== 'done') return; m += `\n### ${c.name}\n- Positioning: ${r.positioning}\n- Hooks: ${r.hooks.join('; ')}\n- Offers and CTAs: ${r.offers_ctas.join('; ')}\n- Student expectations: ${r.student_expectations.join('; ')}\n- Pain points: ${r.pain_points.join('; ')}\n`; });
+  m += `\n## 4. Referenced ads\n` + (allAds().map(a => `- ${a.ref} ${a.comp} · ${a.platform} ${a.format}: ${a.what} ${a.url}`).join('\n') || '- none found');
+  S.ideas.forEach(i => { m += `\n\n## Idea: ${i.title}\n${i.summary}\n\nWhy it works: ${i.why_it_works || ''}\n\nInspired by: ${arr(i.refs).map(r => `[${r.comp}](${r.url})`).join(', ') || 'n/a'}\n\nGPT image prompt:\n\n${i.image_prompt || ''}\n`;
+    arr(S.concepts[i.id]).forEach((c, n) => { m += `\n### ${n + 1}. ${c.title} (${c.format})\n**Hook:** ${c.hook}\n\n` + arr(c.script).map(s => `- ${s.time}: ${s.visual} | VO: ${s.voiceover} | Text: ${s.on_screen_text}`).join('\n') + `\n\n**Headline:** ${c.headline}\n**Primary text:** ${c.primary_text}\n**CTA:** ${c.cta}\n**GPT image prompt:** ${c.image_prompt || ''}\n`; }); });
+  return m;
+}
+function download(name, text, type) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function copyText(t) { navigator.clipboard.writeText(t).then(() => toast('Copied'), () => toast('Copy blocked by the browser')); }
+
+/* ================= events ================= */
+const actions = {
+  goto: d => go(+d.n),
+  dismissErr: () => { UI.error = ''; render(); },
+  runScan: () => runScan(true),
+  stop: () => { STOPPED = true; CTL?.abort(); },
+  toggleComp: d => { const c = S.competitors.find(x => x.id === d.id); if (c) { c.selected = !c.selected; c.forced = true; S.comparison = null; render(); saveSoon(); } },
+  onlyExact: () => { S.competitors.forEach(c => { c.forced = false; c.selected = c.match === 'exact' || !c.match; }); S.matchNote = ''; S.comparison = null; render(); saveSoon(); },
+  withClose: () => { S.competitors.forEach(c => { c.forced = false; c.selected = c.match === 'exact' || c.match === 'close' || !c.match; }); S.matchNote = ''; S.comparison = null; render(); saveSoon(); },
+  removeComp: d => { S.competitors = S.competitors.filter(x => x.id !== d.id); delete S.research[d.id]; S.comparison = null; render(); saveSoon(); },
+  addComp: () => {
+    const name = T.newName.trim(); if (!name) return fail(new Error('Enter the competitor name.'));
+    const w = T.newWeb.trim() ? safeUrl(/^https?:/.test(T.newWeb.trim()) ? T.newWeb.trim() : 'https://' + T.newWeb.trim()) : '';
+    const cu = safeUrl(T.newCourse);
+    S.competitors.push({ id: uid(), name, website: w, type: 'direct', why: 'Added by you', course: '', courseUrl: cu, match: cu ? 'exact' : '', matchReason: cu ? 'Course page supplied by you' : '', forced: true, selected: true });
+    T.newName = T.newWeb = T.newCourse = ''; S.comparison = null; UI.error = ''; render(); saveSoon();
+  },
+  researchNew: () => runStage(async () => { await researchAll(); if (!S.comparison) { scanSet('Comparing you with competitors'); await buildComparison(); } }, 'Researching competitors'),
+  moreComps: () => runStage(async () => { await findComps(true); }, 'Finding more competitors'),
+  retryComp: d => { const c = S.competitors.find(x => x.id === d.id); if (c) runStage(async () => { await researchComp(c).catch(e => { if (e.cancelled) throw e; S.research[c.id] = { status: 'error', error: e.message }; throw e; }); applyMatchFilter(); S.comparison = null; }, 'Researching ' + c.name); },
+  stageComparison: () => runStage(buildComparison, 'Comparing you with competitors'),
+  stageIdeas: () => runStage(async () => { if (!S.comparison) await buildComparison(); await buildIdeas(); }, 'Writing ideas and image prompts'),
+  toggleAcc: d => { UI.open[d.id] = !UI.open[d.id]; render(); },
+  jump: (d, e) => { e?.preventDefault?.(); UI.open[d.id] = true; UI.flash = d.id; render(); const el = $('#comp-' + d.id); el?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); setTimeout(() => { UI.flash = null; $('#comp-' + d.id)?.classList?.remove('flash'); }, 1600); },
+  sec: d => { $('#' + d.sec)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); },
+  pickImg: d => $('#file-' + d.id)?.click(),
+  removeImg: d => { (IMAGES[d.id] || []).splice(+d.i, 1); render(); },
+  copyLinks: () => copyText(allAds().map(a => `${a.comp} (${a.platform} ${a.format}): ${a.url}`).join('\n')),
+  toggleIdea: d => { const i = S.selected.indexOf(d.id); i >= 0 ? S.selected.splice(i, 1) : S.selected.push(d.id); render(); saveSoon(); },
+  selAll: () => { S.selected = S.ideas.map(i => i.id); render(); saveSoon(); },
+  selNone: () => { S.selected = []; render(); saveSoon(); },
+  genConcepts,
+  togglePrompt: d => { UI.promptOpen[d.key] = !UI.promptOpen[d.key]; render(); },
+  copyPrompt: d => copyText(promptFor(d.key)),
+  copyConcept: d => { const c = arr(S.concepts[d.id])[+d.i]; if (c) copyText(conceptText(c)); },
+  exportMd: () => download(`${S.biz.course || S.biz.name || 'report'}-market-intel.md`, toMarkdown(), 'text/markdown'),
+  exportJson: () => download(`${S.biz.course || S.biz.name || 'report'}-market-intel.json`, JSON.stringify(S, null, 2), 'application/json'),
+  print: () => window.print(),
+  openSettings: () => { UI.drawer = 'settings'; renderOverlay(); },
+  openHistory: () => { save(); UI.drawer = 'history'; renderOverlay(); },
+  closeModal: () => { UI.drawer = null; lsSet('mis2_settings', JSON.stringify(settings)); render(); },
+  loadProj: d => { const list = JSON.parse(lsGet('mis2_projects') || '[]'); const p = list.find(x => x.id === d.id); if (p) { S = Object.assign(newState(), p); IMAGES = {}; UI = { busy: null, error: '', open: {}, drawer: null, scan: null, promptOpen: {} }; lsSet('mis2_last', S.id); render(); } },
+  delProj: d => { const list = JSON.parse(lsGet('mis2_projects') || '[]').filter(x => x.id !== d.id); lsSet('mis2_projects', JSON.stringify(list)); if (d.id === S.id) S = newState(); IMAGES = {}; render(); },
+  newProj: () => { save(); S = newState(); IMAGES = {}; UI = { busy: null, error: '', open: {}, drawer: null, scan: null, promptOpen: {} }; render(); }
+};
+
+document.addEventListener('click', e => {
+  if (e.target === $('#overlay')) return actions.closeModal();
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  if (b.tagName === 'INPUT' && b.type === 'checkbox') { actions[b.dataset.act]?.(b.dataset, e); return; }
+  if (b.tagName === 'A' && b.getAttribute('href') !== '#') return;
+  actions[b.dataset.act]?.(b.dataset, e);
+});
+function bind(e) {
+  const t = e.target, k = t.dataset?.bind; if (!k) return;
+  const v = t.type === 'checkbox' ? t.checked : t.value;
+  const [root, ...path] = k.split('.');
+  let obj = root === 't' ? T : root === 'set' ? settings : S;
+  if (root !== 't' && root !== 'set') path.unshift(root);
+  const last = path.pop(); for (const p of path) obj = obj[p] = obj[p] || {};
+  obj[last] = last === 'count' ? Number(v) : v;
+  if (root === 'set') lsSet('mis2_settings', JSON.stringify(settings)); else saveSoon();
+  if ((t.type === 'checkbox' || t.tagName === 'SELECT') && k.startsWith('opts.')) renderMain();
+}
+document.addEventListener('input', bind);
+document.addEventListener('change', e => {
+  const f = e.target.dataset?.file; if (f) { addImages(f, e.target.files); e.target.value = ''; return; }
+  bind(e);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('[data-bind="t.newName"],[data-bind="t.newWeb"]')) { e.preventDefault(); actions.addComp(); }
+  if (e.key === 'Escape' && UI.drawer) actions.closeModal();
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.drop')) { e.preventDefault(); e.target.click(); }
+});
+['dragover', 'dragleave', 'drop'].forEach(ev => document.addEventListener(ev, e => {
+  const z = e.target.closest?.('[data-drop]'); if (!z) return;
+  e.preventDefault(); z.classList.toggle('over', ev === 'dragover');
+  if (ev === 'drop' && e.dataTransfer?.files?.length) addImages(z.dataset.drop, e.dataTransfer.files);
+}));
+document.addEventListener('paste', e => {
+  const openId = Object.keys(UI.open).find(k => UI.open[k]); if (S.step !== 2 || !openId) return;
+  if (e.target.matches('textarea,input') && !e.clipboardData.files.length) return;
+  const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/'));
+  if (files.length) { e.preventDefault(); const z = document.activeElement?.closest?.('[data-drop]'); addImages(z ? z.dataset.drop : openId, files); }
+});
+
+/* ================= boot ================= */
+loadLast(); render();
+</script>
+</body>
+</html>
